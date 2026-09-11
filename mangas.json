@@ -1,29 +1,26 @@
 [
   {
-    "id": "solo-leveling",
-    "title": "Solo Leveling",
-    "category": "manhwa",
-    "cover": "https://midominio.com/portadas/solo-leveling.webp",
-    "progress": 100,
-    "synopsis": "Hace diez años, 'la Puerta' apareció y conectó el mundo real con el reino de la magia y los monstruos...",
+    "id": "crazy-demon",
+    "title": "The Return of the Crazy Demon",
+    "cover": "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-1/01.webp",
+    "progress": 61,
+    "description": "El Demonio Loco Yi Zaha busca alcanzar el reino supremo del arte marcial...",
     "chapters": [
       {
-        "id": "cap-1",
         "number": 1,
         "title": "Capítulo 1",
         "pages": [
-          "https://midominio.com/mangas/solo-leveling/cap1/01.webp",
-          "https://midominio.com/mangas/solo-leveling/cap1/02.webp",
-          "https://midominio.com/mangas/solo-leveling/cap1/03.webp"
+          "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-1/01.webp",
+          "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-1/02.webp",
+          "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-1/03.webp"
         ]
       },
       {
-        "id": "cap-2",
         "number": 2,
         "title": "Capítulo 2",
         "pages": [
-          "https://midominio.com/mangas/solo-leveling/cap2/01.webp",
-          "https://midominio.com/mangas/solo-leveling/cap2/02.webp"
+          "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-2/01.webp",
+          "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog/crazy-demon/cap-2/02.webp"
         ]
       }
     ]
