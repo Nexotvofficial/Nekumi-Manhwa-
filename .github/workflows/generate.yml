@@ -21,7 +21,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,12 +42,17 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
+          # 1. Sincronizar de forma limpia con main antes de añadir cambios
+          git fetch origin main
+          git reset --soft origin/main
+          
+          # 2. Agregar carpetas reubicadas y el mangas.json recién generado
           git add -A
           
+          # 3. Guardar y subir
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
             git commit -m "auto: actualización de catálogo y conversión a webp"
-            git pull origin main --rebase
             git push origin main
           fi
