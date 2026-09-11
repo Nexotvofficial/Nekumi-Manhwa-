@@ -9,7 +9,6 @@ on:
       - 'README.md'
   workflow_dispatch:
 
-# Permiso explícito de escritura
 permissions:
   contents: write
 
@@ -22,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,13 +43,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Agrega tanto catalog/ como cualquier carpeta nueva que haya movido el auto-fix
           git add -A
           
-          # Verificar si hay cambios antes de hacer commit
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
             git commit -m "auto: actualización de catálogo y conversión a webp"
+            git pull origin main --rebase
             git push origin main
           fi
