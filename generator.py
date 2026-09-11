@@ -155,16 +155,20 @@ def generate_catalog():
             pages = []
             for index, img_name in enumerate(images):
                 img_path = os.path.join(chap_path, img_name)
-                webp_name = f"{index+1:03d}.webp"
-                webp_path = os.path.join(chap_path, webp_name)
+                target_webp_name = f"{index+1:03d}.webp"
+                target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                # Convertir a WebP si es necesario
-                if not img_name.endswith('.webp'):
-                    if create_webp(img_path, webp_path):
-                        if os.path.exists(img_path) and img_path != webp_path:
+                # 1. Si no es WebP, convertir y eliminar original
+                if not img_name.lower().endswith('.webp'):
+                    if create_webp(img_path, target_webp_path):
+                        if os.path.exists(img_path) and img_path != target_webp_path:
                             os.remove(img_path)
+                else:
+                    # 2. Si ya es WebP pero no tiene el formato de 3 dígitos (ej: 01.webp), renombrarlo
+                    if img_name != target_webp_name:
+                        shutil.move(img_path, target_webp_path)
 
-                page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{webp_name}"
+                page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
                 pages.append(page_url)
 
             if pages:
