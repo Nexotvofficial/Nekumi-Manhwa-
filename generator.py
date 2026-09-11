@@ -1,11 +1,12 @@
 import os
 import json
+import re
 from PIL import Image
 
-# Configuración de carpetas y servidor
+# Configuración de carpetas y repositorio
 BASE_DIR = "catalog"  # Carpeta raíz donde guardas tus mangas
 OUTPUT_JSON = "mangas.json"
-BASE_URL = "https://raw.githubusercontent.com/tu-usuario/tu-repo/main/catalog"
+BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog"
 
 def create_webp(input_path, output_path, quality=80):
     """Convierte y optimiza imágenes a formato WebP"""
@@ -16,6 +17,15 @@ def create_webp(input_path, output_path, quality=80):
     except Exception as e:
         print(f"Error procesando {input_path}: {e}")
         return False
+
+def extract_chapter_number(folder_name):
+    """Detecta inteligentemente el número del capítulo desde el nombre de la carpeta"""
+    # Busca números enteros o decimales (ej: cap-1, cap-02, 12.5, capitulo_3)
+    match = re.search(r'(\d+(?:\.\d+)?)', folder_name)
+    if match:
+        num_str = match.group(1)
+        return float(num_str) if '.' in num_str else int(num_str)
+    return 1
 
 def generate_catalog():
     if not os.path.exists(BASE_DIR):
@@ -44,38 +54,45 @@ def generate_catalog():
                 continue
 
             chap_id = chap_folder.lower().replace(" ", "-")
+            chap_num = extract_chapter_number(chap_folder)
+            
+            # Obtener y filtrar imágenes
+            raw_images = [f for f in os.listdir(chap_path) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))]
+            
+            # Ordenar las imágenes alfanuméricamente (01, 02, 03...)
+            images = sorted(raw_images, key=lambda x: [int(c) if c.isdigit() else c for c in re.split(r'(\d+)', x)])
+
             pages = []
-
-            # Filtrar y ordenar imágenes
-            images = [f for f in sorted(os.listdir(chap_path)) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))]
-
             for index, img_name in enumerate(images):
                 img_path = os.path.join(chap_path, img_name)
                 
-                # Convertir la imagen a .webp si no lo es
+                # Definir nombre webp final numerado en 3 dígitos (001.webp, 002.webp)
                 webp_name = f"{index+1:03d}.webp"
                 webp_path = os.path.join(chap_path, webp_name)
 
+                # Si el archivo no es .webp, convertirlo y eliminar el original
                 if not img_name.endswith('.webp'):
                     if create_webp(img_path, webp_path):
-                        os.remove(img_path)  # Elimina el JPG/PNG original para ahorrar espacio
+                        if os.path.exists(img_path) and img_path != webp_path:
+                            os.remove(img_path)
 
                 page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{webp_name}"
                 pages.append(page_url)
 
-                # Usar la primera imagen del Capítulo 1 como portada si no hay una asignada
-                if not cover_url and len(pages) > 0:
+            if pages:
+                # La primera página del primer capítulo servirá de portada general
+                if not cover_url:
                     cover_url = pages[0]
 
-            if pages:
-                # Extraer número de capítulo
-                chap_num = ''.join(filter(str.isdigit, chap_folder)) or "1"
                 chapters.append({
                     "id": chap_id,
-                    "number": int(chap_num),
+                    "number": chap_num,
                     "title": f"Capítulo {chap_num}",
                     "pages": pages
                 })
+
+        # Ordenar los capítulos numéricamente antes de guardar
+        chapters.sort(key=lambda x: x["number"])
 
         if chapters:
             manga_list.append({
@@ -88,7 +105,7 @@ def generate_catalog():
                 "chapters": chapters
             })
 
-    # Guardar en mangas.json con formato limpio
+    # Guardar el resultado en mangas.json
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
