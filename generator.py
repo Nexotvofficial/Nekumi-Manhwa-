@@ -5,8 +5,6 @@ import shutil
 import hashlib
 from datetime import datetime
 from PIL import Image
-import cv2
-import numpy as np
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
@@ -18,21 +16,15 @@ OUTPUT_JSON = "mangas.json"
 CACHE_FILE = "uploaded_cache.json"
 IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
-# Cantidad de cargas simultáneas a ImgBB (Subida masiva)
+# Cantidad de cargas simultáneas a ImgBB
 MAX_WORKERS = 6
 
-# Porcentaje de seguridad de recorte para remover marcas de agua
-TOP_CROP_PERCENT = 0.03
-BOTTOM_CROP_PERCENT = 0.04
-
-# Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
     "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
 def load_cache():
-    """Carga la base de datos local de imágenes ya subidas a ImgBB"""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
@@ -42,7 +34,6 @@ def load_cache():
     return {}
 
 def save_cache(cache):
-    """Guarda el historial actualizado de subidas"""
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
@@ -50,7 +41,6 @@ def save_cache(cache):
         print(f"❌ Error al guardar el caché: {e}")
 
 def get_file_hash(filepath):
-    """Genera un identificador único (SHA-256) por cada archivo"""
     hasher = hashlib.sha256()
     with open(filepath, 'rb') as f:
         buf = f.read(65536)
@@ -60,7 +50,6 @@ def get_file_hash(filepath):
     return hasher.hexdigest()
 
 def auto_fix_and_organize():
-    """Auto-organiza carpetas desubicadas en la raíz"""
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR, exist_ok=True)
     if not os.path.exists(IMG_DIR):
@@ -80,52 +69,9 @@ def auto_fix_and_organize():
             else:
                 shutil.move(item, target_path)
 
-def clean_watermark_cv2(image_path):
-    """Remueve marcas de agua y logos usando OpenCV Inpainting"""
-    img = cv2.imread(image_path)
-    if img is None:
-        return None
-
-    h, w, _ = img.shape
-    top_crop = int(h * TOP_CROP_PERCENT)
-    bottom_crop = int(h * (1 - BOTTOM_CROP_PERCENT))
-    img = img[top_crop:bottom_crop, 0:w]
-
-    h, w, _ = img.shape
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    mask = np.zeros((h, w), dtype=np.uint8)
-    margin = min(120, int(h * 0.12))
-
-    top_region = gray[0:margin, :]
-    bottom_region = gray[h-margin:h, :]
-
-    _, top_thresh = cv2.threshold(top_region, 220, 255, cv2.THRESH_BINARY)
-    _, bottom_thresh = cv2.threshold(bottom_region, 220, 255, cv2.THRESH_BINARY)
-
-    mask[0:margin, :] = top_thresh
-    mask[h-margin:h, :] = bottom_thresh
-
-    kernel = np.ones((3, 3), np.uint8)
-    mask = cv2.dilate(mask, kernel, iterations=2)
-
-    if np.sum(mask) > 0:
-        cleaned_img = cv2.inpaint(img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
-    else:
-        cleaned_img = img
-
-    cleaned_rgb = cv2.cvtColor(cleaned_img, cv2.COLOR_BGR2RGB)
-    return Image.fromarray(cleaned_rgb)
-
-def create_webp(input_path, output_path, quality=80, is_page=False):
-    """Convierte la imagen a WebP"""
+def create_webp(input_path, output_path, quality=80):
     try:
-        if is_page:
-            pil_img = clean_watermark_cv2(input_path)
-            if pil_img is None:
-                pil_img = Image.open(input_path).convert("RGB")
-        else:
-            pil_img = Image.open(input_path).convert("RGB")
-
+        pil_img = Image.open(input_path).convert("RGB")
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         pil_img.save(output_path, "WEBP", quality=quality)
         return True
@@ -134,7 +80,6 @@ def create_webp(input_path, output_path, quality=80, is_page=False):
         return False
 
 def upload_single_task(task):
-    """Ejecución paralela de subida por hilo"""
     image_path, file_hash, name = task
     url = "https://api.imgbb.com/1/upload"
     retries = 3
@@ -166,7 +111,6 @@ def upload_single_task(task):
     return file_hash, None
 
 def process_and_upload_batch(tasks_list, cache):
-    """Maneja el grupo de peticiones concurrentes a la API"""
     if not tasks_list:
         return
 
@@ -249,7 +193,7 @@ def generate_catalog():
             if os.path.exists(cover_src):
                 target_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
                 if cover_src != target_cover:
-                    if create_webp(cover_src, target_cover, is_page=False):
+                    if create_webp(cover_src, target_cover):
                         if os.path.exists(cover_src):
                             os.remove(cover_src)
                 
@@ -278,12 +222,12 @@ def generate_catalog():
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
                     if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
-                        if create_webp(img_path, target_webp_path, is_page=True):
+                        if create_webp(img_path, target_webp_path):
                             if os.path.exists(img_path):
                                 os.remove(img_path)
                     else:
                         temp_path = os.path.join(chap_path, f"temp_{target_webp_name}")
-                        if create_webp(img_path, temp_path, is_page=True):
+                        if create_webp(img_path, temp_path):
                             shutil.move(temp_path, target_webp_path)
 
                     f_hash = get_file_hash(target_webp_path)
