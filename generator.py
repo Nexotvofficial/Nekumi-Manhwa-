@@ -108,27 +108,19 @@ def load_manga_metadata(manga_path, default_title):
 
     return metadata
 
-def resolve_or_create_cover(manga_path, manga_folder, manga_id):
+def get_cover_from_img_dir(manga_id):
     """
-    Busca únicamente portadas con nombre explícito subidas por el usuario.
+    Busca únicamente la portada en la carpeta img/ asociada al ID del manhwa.
     """
-    # 1. Si existe cover.* dentro de la carpeta del manhwa (catalog/nombre-manhwa/cover.png, cover.jpg, etc.)
-    for ext in ['.webp', '.png', '.jpg', '.jpeg']:
-        local_cover = os.path.join(manga_path, f"cover{ext}")
-        if os.path.exists(local_cover):
-            target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
-            create_webp(local_cover, target_img_path)
-            return f"{IMG_BASE_URL}/{manga_id}.webp"
-
-    # 2. Si subiste la imagen directamente a la carpeta img/ con el id del manhwa (img/nombre-manhwa.webp, .png, .jpg)
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
         if os.path.exists(img_file):
-            # Si no es webp, la convierte
+            # Si la subiste en png/jpg, la optimiza a webp automáticamente
             if not ext.endswith('.webp'):
                 target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
-                create_webp(img_file, target_img_path)
-                os.remove(img_file)
+                if create_webp(img_file, target_img_path):
+                    if os.path.exists(img_file) and img_file != target_img_path:
+                        os.remove(img_file)
             return f"{IMG_BASE_URL}/{manga_id}.webp"
 
     return ""
@@ -194,13 +186,13 @@ def generate_catalog():
         chapters.sort(key=lambda x: x["number"])
 
         if chapters:
-            final_cover = resolve_or_create_cover(manga_path, manga_folder, manga_id)
+            cover_url = get_cover_from_img_dir(manga_id)
 
             manga_list.append({
                 "id": manga_id,
                 "title": meta["title"],
                 "category": "manhwa",
-                "cover": final_cover,
+                "cover": cover_url,
                 "status": meta.get("status", "En emisión"),
                 "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
                 "genres": meta.get("genres", ["Manhwa"]),
