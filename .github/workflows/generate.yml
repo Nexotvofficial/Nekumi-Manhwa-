@@ -42,17 +42,15 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 1. Agregar todos los cambios (imágenes WebP convertidas, auto-fix de carpetas y mangas.json)
-          git add -A
+          # 1. Agregar únicamente las carpetas de contenido y el JSON generado
+          git add catalog/ img/ mangas.json
           
-          # 2. Verificar si hay cambios staged antes de hacer commit
+          # 2. Verificar si hay cambios antes de hacer commit
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
-            # [skip ci] evita que este commit automático dispare otro ciclo de Actions
+            # [skip ci] evita que este commit dispare otra ejecución del workflow
             git commit -m "auto: actualización de catálogo y conversión a webp [skip ci]"
-            
-            # 3. Sincronizar de forma limpia con el remoto antes de enviar
             git pull --rebase origin main
             git push origin main
           fi
