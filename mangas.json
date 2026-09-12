@@ -11,7 +11,7 @@
       "Acción"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-12 03:33:56 UTC",
+    "last_updated": "2026-09-12 03:36:17 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -124,21 +124,6 @@
     ]
   },
   {
-    "id": "el-regreso-del-caballero-de-la-muerte-clase-apocalipsis",
-    "title": "El Regreso Del Caballero De La Muerte Clase Apocalipsis",
-    "category": "manhwa",
-    "cover": "",
-    "status": "En emisión",
-    "synopsis": "Sinopsis no disponible por el momento.",
-    "genres": [
-      "Manhwa",
-      "Acción"
-    ],
-    "total_chapters": 0,
-    "last_updated": "2026-09-12 03:33:56 UTC",
-    "chapters": []
-  },
-  {
     "id": "solo-leveling-ragnarok",
     "title": "Solo Leveling Ragnarok",
     "category": "manhwa",
@@ -150,7 +135,7 @@
       "Acción"
     ],
     "total_chapters": 1,
-    "last_updated": "2026-09-12 03:33:56 UTC",
+    "last_updated": "2026-09-12 03:36:17 UTC",
     "chapters": [
       {
         "id": "cap-1",
