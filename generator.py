@@ -95,7 +95,7 @@ def upload_image(image_path, file_hash, name, cache):
                 
                 cache[file_hash] = {"url": direct_url, "thumb": thumb_url}
                 print(f"✅ Subida exitosa: {os.path.basename(image_path)}")
-                time.sleep(1) # Pausa normal de 1 segundo
+                time.sleep(1)
                 return True
             else:
                 error_msg = data.get("error", {}).get("message", "Error desconocido")
@@ -159,25 +159,31 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
-    # Preparar imágenes
+    # 1. Procesar portadas
     for manga_id in all_manga_ids:
-        manga_path = os.path.join(BASE_DIR, manga_id)
-        
         for ext in ['.webp', '.png', '.jpg', '.jpeg']:
             cover_src = os.path.join(IMG_DIR, f"{manga_id}{ext}")
             if os.path.exists(cover_src):
                 target_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
-                if cover_src != target_cover:
-                    if create_webp(cover_src, target_cover):
-                        if os.path.exists(cover_src):
-                            os.remove(cover_src)
                 
-                f_hash = get_file_hash(target_cover)
-                file_map[target_cover] = f_hash
-                if f_hash not in cache:
-                    upload_tasks.append((target_cover, f_hash, f"cover_{manga_id}"))
+                # Si no es webp, convertir. Si ya es webp, no re-comprimir.
+                if cover_src != target_cover:
+                    if cover_src.lower().endswith('.webp'):
+                        shutil.move(cover_src, target_cover)
+                    else:
+                        if create_webp(cover_src, target_cover):
+                            if os.path.exists(cover_src):
+                                os.remove(cover_src)
+                
+                if os.path.exists(target_cover):
+                    f_hash = get_file_hash(target_cover)
+                    file_map[target_cover] = f_hash
+                    if f_hash not in cache:
+                        upload_tasks.append((target_cover, f_hash, f"cover_{manga_id}"))
                 break
 
+        # 2. Procesar imágenes de capítulos
+        manga_path = os.path.join(BASE_DIR, manga_id)
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
             for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
                 chap_path = os.path.join(manga_path, chap_folder)
@@ -195,35 +201,35 @@ def generate_catalog():
                     target_webp_name = f"{index+1:03d}.webp"
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                    if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
-                        if create_webp(img_path, target_webp_path):
-                            if os.path.exists(img_path):
-                                os.remove(img_path)
+                    # Si ya es WebP, evitar re-comprensión con PIL para no alterar el hash
+                    if img_name.lower().endswith('.webp'):
+                        if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
+                            shutil.move(img_path, target_webp_path)
                     else:
-                        temp_path = os.path.join(chap_path, f"temp_{target_webp_name}")
-                        if create_webp(img_path, temp_path):
-                            shutil.move(temp_path, target_webp_path)
+                        if create_webp(img_path, target_webp_path):
+                            if os.path.exists(img_path) and os.path.abspath(img_path) != os.path.abspath(target_webp_path):
+                                os.remove(img_path)
 
-                    f_hash = get_file_hash(target_webp_path)
-                    file_map[target_webp_path] = f_hash
-                    if f_hash not in cache:
-                        upload_tasks.append((target_webp_path, f_hash, f"{manga_id}_{chap_folder}_{index+1:03d}"))
+                    if os.path.exists(target_webp_path):
+                        f_hash = get_file_hash(target_webp_path)
+                        file_map[target_webp_path] = f_hash
+                        if f_hash not in cache:
+                            upload_tasks.append((target_webp_path, f_hash, f"{manga_id}_{chap_folder}_{index+1:03d}"))
 
-    # Subir imágenes secuencialmente (modo normal)
+    # Subir imágenes pendientes a ImgBB
     if upload_tasks:
         print(f"⚡ Subiendo {len(upload_tasks)} imágenes de manera secuencial...")
         for index, task in enumerate(upload_tasks):
             image_path, file_hash, name = task
             upload_image(image_path, file_hash, name, cache)
             
-            # Guardar caché de vez en cuando
             if (index + 1) % 5 == 0 or (index + 1) == len(upload_tasks):
                 save_cache(cache)
                 print(f"⏳ Avance: {index + 1}/{len(upload_tasks)} imágenes procesadas.")
     else:
         print("⚡ Todas las imágenes ya están registradas en el caché.")
 
-    # Generar JSON
+    # Generar JSON final
     manga_list = []
     for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
