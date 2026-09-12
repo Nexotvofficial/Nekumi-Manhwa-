@@ -30,7 +30,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pillow opencv-python-headless numpy
+          pip install pillow opencv-python-headless numpy requests
 
       - name: Run Generator Script
         run: python generator.py
@@ -48,6 +48,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
-            git commit -m "auto: remoción inteligente de marcas de agua y generación WebP [skip ci]"
+            git commit -m "auto: optimización, subida a ImgBB y actualización de catálogo [skip ci]"
             git push origin main --force-with-lease
           fi
