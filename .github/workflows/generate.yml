@@ -32,7 +32,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pillow opencv-python-headless numpy requests
+          pip install pillow requests
 
       - name: Run Generator Script
         run: python generator.py
@@ -46,8 +46,11 @@ jobs:
           
           git fetch origin main
           
-          # Agregamos solo los datos generados para evitar tocar el YAML
-          git add catalog/ img/ mangas.json uploaded_cache.json
+          # Agregamos los archivos solo si existen para evitar el error 'pathspec'
+          if [ -d "catalog" ]; then git add catalog/; fi
+          if [ -d "img" ]; then git add img/; fi
+          if [ -f "mangas.json" ]; then git add mangas.json; fi
+          if [ -f "uploaded_cache.json" ]; then git add uploaded_cache.json; fi
           
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
