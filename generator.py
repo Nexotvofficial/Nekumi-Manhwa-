@@ -6,7 +6,6 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
 # Configuración principal
@@ -14,10 +13,7 @@ BASE_DIR = "catalog"
 IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
 CACHE_FILE = "uploaded_cache.json"
-IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
-
-# 1 solo hilo para evitar bloqueos por parte de ImgBB a las IPs de GitHub
-MAX_WORKERS = 1
+IMGBB_API_KEY = "cac504d03f267f5618868d82138cdab1"
 
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
@@ -79,59 +75,35 @@ def create_webp(input_path, output_path, quality=80):
         print(f"❌ Error procesando {input_path}: {e}")
         return False
 
-def upload_single_task(task):
-    image_path, file_hash, name = task
+def upload_image(image_path, file_hash, name, cache):
     url = "https://api.imgbb.com/1/upload"
-    retries = 4
-
-    for attempt in range(retries):
-        try:
-            with open(image_path, "rb") as file:
-                payload = {"key": IMGBB_API_KEY}
-                if name:
-                    payload["name"] = name
-                files = {"image": file}
-
-                response = requests.post(url, data=payload, files=files, timeout=30)
-                data = response.json()
-
-                if data.get("success"):
-                    direct_url = data["data"]["url"]
-                    thumb_data = data["data"].get("thumb") or data["data"].get("medium")
-                    thumb_url = thumb_data.get("url") if thumb_data else direct_url
-                    
-                    # Pausa larga para no detonar el antibot de ImgBB
-                    time.sleep(1.5)
-                    return file_hash, {"url": direct_url, "thumb": thumb_url}
-                else:
-                    error_msg = data.get("error", {}).get("message", "Error desconocido")
-                    status_code = data.get("status_code", "N/A")
-                    print(f"⚠️ Fallo en ImgBB [{status_code}]: {error_msg} -> Reintento {attempt+1} para {os.path.basename(image_path)}")
-                    time.sleep(5) # Espera 5 segundos antes de reintentar si falló
-        except Exception as e:
-            print(f"⚠️ Excepción (reintento {attempt+1}): {e} -> {os.path.basename(image_path)}")
-            time.sleep(5)
-
-    return file_hash, None
-
-def process_and_upload_batch(tasks_list, cache):
-    if not tasks_list:
-        return
-
-    print(f"⚡ Subiendo {len(tasks_list)} imágenes (1 por 1 para evitar bloqueos)...")
     
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [executor.submit(upload_single_task, task) for task in tasks_list]
-        
-        completed_count = 0
-        for future in as_completed(futures):
-            file_hash, result = future.result()
-            if result:
-                cache[file_hash] = result
-                completed_count += 1
-                if completed_count % 5 == 0 or completed_count == len(tasks_list):
-                    save_cache(cache)
-                    print(f"⏳ Avance: {completed_count}/{len(tasks_list)} imágenes subidas.")
+    try:
+        with open(image_path, "rb") as file:
+            payload = {"key": IMGBB_API_KEY}
+            if name:
+                payload["name"] = name
+            files = {"image": file}
+
+            response = requests.post(url, data=payload, files=files, timeout=30)
+            data = response.json()
+
+            if data.get("success"):
+                direct_url = data["data"]["url"]
+                thumb_data = data["data"].get("thumb") or data["data"].get("medium")
+                thumb_url = thumb_data.get("url") if thumb_data else direct_url
+                
+                cache[file_hash] = {"url": direct_url, "thumb": thumb_url}
+                print(f"✅ Subida exitosa: {os.path.basename(image_path)}")
+                time.sleep(1) # Pausa normal de 1 segundo
+                return True
+            else:
+                error_msg = data.get("error", {}).get("message", "Error desconocido")
+                print(f"⚠️ Error de ImgBB para {os.path.basename(image_path)}: {error_msg}")
+                return False
+    except Exception as e:
+        print(f"⚠️ Excepción al subir {os.path.basename(image_path)}: {e}")
+        return False
 
 def extract_chapter_number(folder_name):
     match = re.search(r'(\d+(?:\.\d+)?)', folder_name)
@@ -164,7 +136,7 @@ def load_manga_metadata(manga_path, default_title):
     return metadata
 
 def generate_catalog():
-    print("🚀 Escaneando carpetas y preparando procesamiento masivo...")
+    print("🚀 Escaneando carpetas...")
     
     auto_fix_and_organize()
     cache = load_cache()
@@ -187,6 +159,7 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
+    # Preparar imágenes
     for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         
@@ -236,11 +209,21 @@ def generate_catalog():
                     if f_hash not in cache:
                         upload_tasks.append((target_webp_path, f_hash, f"{manga_id}_{chap_folder}_{index+1:03d}"))
 
+    # Subir imágenes secuencialmente (modo normal)
     if upload_tasks:
-        process_and_upload_batch(upload_tasks, cache)
+        print(f"⚡ Subiendo {len(upload_tasks)} imágenes de manera secuencial...")
+        for index, task in enumerate(upload_tasks):
+            image_path, file_hash, name = task
+            upload_image(image_path, file_hash, name, cache)
+            
+            # Guardar caché de vez en cuando
+            if (index + 1) % 5 == 0 or (index + 1) == len(upload_tasks):
+                save_cache(cache)
+                print(f"⏳ Avance: {index + 1}/{len(upload_tasks)} imágenes procesadas.")
     else:
-        print("⚡ Todas las imágenes ya están registradas en el caché. Generando JSON directo...")
+        print("⚡ Todas las imágenes ya están registradas en el caché.")
 
+    # Generar JSON
     manga_list = []
     for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
@@ -308,7 +291,6 @@ def generate_catalog():
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
     print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}'")
-    print(f"📊 Total de mangas en la base de datos: {len(manga_list)}")
 
 if __name__ == "__main__":
     generate_catalog()
