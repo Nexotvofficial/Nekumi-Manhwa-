@@ -12,7 +12,6 @@ GITHUB_REPO = "Nekumi-Manhwa-"
 BRANCH = "main"
 
 # True para usar el CDN de jsDelivr (más rápido y sin límites de ancho de banda)
-# False para usar URLs directas de raw.githubusercontent.com
 USE_JSDELIVR = True
 
 BASE_DIR = "catalog"
@@ -26,7 +25,6 @@ SYSTEM_ITEMS = {
 
 def get_media_url(file_path):
     clean_path = file_path.replace("\\", "/")
-    # Codifica espacios y caracteres especiales para URLs válidas
     clean_path = urllib.parse.quote(clean_path, safe='/')
     
     if USE_JSDELIVR:
@@ -95,7 +93,6 @@ def load_manga_metadata(manga_path, default_title):
 
 def generate_catalog():
     print("🚀 Procesando imágenes y generando URLs de GitHub/CDN...")
-    
     auto_fix_and_organize()
 
     catalog_mangas = set()
@@ -129,7 +126,7 @@ def generate_catalog():
                                 os.remove(cover_src)
                 break
 
-    # 2. Optimización y conversión de imágenes de capítulos
+    # 2. Optimización segura de imágenes (Previene que se borren páginas)
     for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
@@ -143,19 +140,37 @@ def generate_catalog():
                     if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
                 ]
                 images = sorted(raw_images, key=natural_sort_key)
-
+                
+                # PASO A: Renombrar a nombres temporales para evitar pisar archivos existentes
+                safe_paths = []
                 for index, img_name in enumerate(images):
                     img_path = os.path.join(chap_path, img_name)
-                    target_webp_name = f"{index+1:03d}.webp"
-                    target_webp_path = os.path.join(chap_path, target_webp_name)
+                    temp_name = f"temp_page_{index:04d}.webp"
+                    temp_path = os.path.join(chap_path, temp_name)
 
                     if img_name.lower().endswith('.webp'):
-                        if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
-                            shutil.move(img_path, target_webp_path)
+                        if os.path.abspath(img_path) != os.path.abspath(temp_path):
+                            shutil.move(img_path, temp_path)
+                        safe_paths.append(temp_path)
                     else:
-                        if create_webp(img_path, target_webp_path):
-                            if os.path.exists(img_path) and os.path.abspath(img_path) != os.path.abspath(target_webp_path):
+                        if create_webp(img_path, temp_path):
+                            if os.path.exists(img_path):
                                 os.remove(img_path)
+                            safe_paths.append(temp_path)
+                        else:
+                            # Si falla, mantenemos el archivo original con nombre seguro
+                            _, ext = os.path.splitext(img_name)
+                            fallback_path = os.path.join(chap_path, f"temp_page_{index:04d}{ext}")
+                            shutil.move(img_path, fallback_path)
+                            safe_paths.append(fallback_path)
+
+                # PASO B: Renombrar de temporales al formato final secuencial
+                for index, temp_path in enumerate(safe_paths):
+                    _, ext = os.path.splitext(temp_path)
+                    final_name = f"{index+1:03d}{ext}"
+                    final_path = os.path.join(chap_path, final_name)
+                    if os.path.abspath(temp_path) != os.path.abspath(final_path):
+                        shutil.move(temp_path, final_path)
 
     # 3. Construcción del archivo mangas.json
     manga_list = []
@@ -174,17 +189,18 @@ def generate_catalog():
                 chap_id = chap_folder.lower().replace(" ", "-")
                 chap_num = extract_chapter_number(chap_folder)
 
+                # Ahora lee TODOS los formatos de imagen, no solo webp
                 raw_images = [
                     f for f in os.listdir(chap_path) 
-                    if f.lower().endswith('.webp') and not f.startswith("cover")
+                    if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
                 ]
                 images = sorted(raw_images, key=natural_sort_key)
 
                 pages = []
                 for img_name in images:
-                    target_webp_path = os.path.join(chap_path, img_name)
-                    if os.path.exists(target_webp_path):
-                        pages.append(get_media_url(target_webp_path))
+                    target_img_path = os.path.join(chap_path, img_name)
+                    if os.path.exists(target_img_path):
+                        pages.append(get_media_url(target_img_path))
 
                 if pages:
                     chapters.append({
