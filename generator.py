@@ -12,6 +12,10 @@ OUTPUT_JSON = "mangas.json"
 BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog"
 IMG_BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/img"
 
+# Porcentaje de recorte para eliminar marcas de agua en bordes superior e inferior (0.0 = sin recorte)
+TOP_CROP_PERCENT = 0.02    # Recorta el 2% superior de la imagen
+BOTTOM_CROP_PERCENT = 0.02 # Recorta el 2% inferior de la imagen
+
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
@@ -58,11 +62,33 @@ def auto_fix_and_organize():
         for img in loose_images:
             shutil.move(os.path.join(BASE_DIR, img), os.path.join(target_chap_dir, img))
 
-def create_webp(input_path, output_path, quality=80):
-    """Convierte y optimiza imágenes a WebP"""
+def remove_watermark_and_crop(img, top_percent=TOP_CROP_PERCENT, bottom_percent=BOTTOM_CROP_PERCENT):
+    """
+    Elimina marcas de agua recortando bordes superior e inferior de la imagen.
+    """
+    width, height = img.size
+    
+    # Calcular coordenadas para el recorte
+    top = int(height * top_percent)
+    bottom = int(height * (1 - bottom_percent))
+    
+    if top < bottom and (top > 0 or bottom < height):
+        # Recortar la imagen omitiendo las marcas de agua de las esquinas/bordes
+        return img.crop((0, top, width, bottom))
+    
+    return img
+
+def create_webp(input_path, output_path, quality=80, is_page=False):
+    """Convierte, remueve marcas de agua y optimiza imágenes a WebP"""
     try:
         with Image.open(input_path) as img:
-            img.convert("RGB").save(output_path, "WEBP", quality=quality)
+            img = img.convert("RGB")
+            
+            # Aplica recorte de marca de agua solo si es una página de capítulo
+            if is_page:
+                img = remove_watermark_and_crop(img)
+                
+            img.save(output_path, "WEBP", quality=quality)
         return True
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
@@ -123,7 +149,7 @@ def get_cover_from_img_dir(manga_id):
         if os.path.exists(img_file):
             if not ext.endswith('.webp'):
                 target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
-                if create_webp(img_file, target_img_path):
+                if create_webp(img_file, target_img_path, is_page=False):
                     if os.path.exists(img_file) and img_file != target_img_path:
                         os.remove(img_file)
             return f"{IMG_BASE_URL}/{manga_id}.webp"
@@ -156,7 +182,6 @@ def generate_catalog():
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
     for manga_id in all_manga_ids:
-        # Busca la carpeta usando el ID o el nombre original si coincide
         manga_folder = manga_id
         manga_path = os.path.join(BASE_DIR, manga_folder)
         
@@ -164,7 +189,6 @@ def generate_catalog():
         meta = load_manga_metadata(manga_path, default_title)
         chapters = []
 
-        # Si existe la carpeta en catalog/, procesa los capítulos
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
             for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
                 chap_path = os.path.join(manga_path, chap_folder)
@@ -186,13 +210,10 @@ def generate_catalog():
                     target_webp_name = f"{index+1:03d}.webp"
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                    if not img_name.lower().endswith('.webp'):
-                        if create_webp(img_path, target_webp_path):
-                            if os.path.exists(img_path) and img_path != target_webp_path:
-                                os.remove(img_path)
-                    else:
-                        if img_name != target_webp_name:
-                            shutil.move(img_path, target_webp_path)
+                    # Procesa la imagen aplicando limpieza/recorte de marcas de agua
+                    create_webp(img_path, target_webp_path, is_page=True)
+                    if os.path.exists(img_path) and img_path != target_webp_path:
+                        os.remove(img_path)
 
                     page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
                     pages.append(page_url)
