@@ -10,6 +10,11 @@ on:
       - 'README.md'
   workflow_dispatch:
 
+# 🚀 Evitar colisiones: Cancela ejecuciones en curso si haces varios push seguidos
+concurrency:
+  group: "manga-catalog-${{ github.ref }}"
+  cancel-in-progress: true
+
 permissions:
   contents: write
   actions: write
@@ -19,42 +24,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Descarga todo el historial para evitar errores al hacer rebase
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pip' # ⚡ Activa caché para que Pillow y requests se instalen al instante
 
-      - name: Install Dependencies
+      - name: 📦 Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pillow requests
 
-      - name: Run Generator Script
+      - name: ⚙️ Run Generator Script
         run: python generator.py
 
-      - name: Commit and Push Changes
+      - name: 💾 Commit and Push Changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Actualizar repositorio remoto para evitar conflictos antes de empujar
-          git pull --rebase origin main
-          
-          if [ -d "catalog" ]; then git add catalog/; fi
-          if [ -d "img" ]; then git add img/; fi
-          if [ -f "mangas.json" ]; then git add mangas.json; fi
-          if [ -f "uploaded_cache.json" ]; then git add uploaded_cache.json; fi
+          # git add -A detecta TODO automáticamente (archivos nuevos, modificados y eliminados)
+          # Esto reemplaza los "if [ -d ... ]" manuales y evita que se queden archivos sueltos.
+          git add -A
           
           if git diff --staged --quiet; then
-            echo "No hay cambios para guardar."
+            echo "✅ No hay cambios para guardar."
           else
-            git commit -m "auto: optimización webp y actualización de catálogo [skip ci]"
+            echo "🚀 Cambios detectados. Creando commit..."
+            git commit -m "auto: optimización webp y actualización de catálogo 📚 [skip ci]"
+            
+            # Sincroniza el repositorio remoto con el local de forma segura
+            git pull --rebase origin main
+            
+            # Empuja los cambios forzando limpieza
             git push origin main
           fi
