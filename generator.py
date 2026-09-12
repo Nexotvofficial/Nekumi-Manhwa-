@@ -16,8 +16,8 @@ OUTPUT_JSON = "mangas.json"
 CACHE_FILE = "uploaded_cache.json"
 IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
-# Cantidad de cargas simultáneas a ImgBB
-MAX_WORKERS = 6
+# Reducido a 2 hilos para evitar rate-limiting de ImgBB
+MAX_WORKERS = 2
 
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
@@ -82,7 +82,7 @@ def create_webp(input_path, output_path, quality=80):
 def upload_single_task(task):
     image_path, file_hash, name = task
     url = "https://api.imgbb.com/1/upload"
-    retries = 3
+    retries = 4
 
     for attempt in range(retries):
         try:
@@ -100,13 +100,15 @@ def upload_single_task(task):
                     thumb_data = data["data"].get("thumb") or data["data"].get("medium")
                     thumb_url = thumb_data.get("url") if thumb_data else direct_url
                     
+                    # Pausa estratégica entre peticiones para evitar bloqueos
+                    time.sleep(0.5)
                     return file_hash, {"url": direct_url, "thumb": thumb_url}
                 else:
                     print(f"⚠️ Reintento {attempt+1} en ImgBB para {os.path.basename(image_path)}")
-                    time.sleep(2)
+                    time.sleep(3)
         except Exception as e:
             print(f"⚠️ Excepción en reintento {attempt+1}: {e}")
-            time.sleep(2)
+            time.sleep(3)
 
     return file_hash, None
 
@@ -114,7 +116,7 @@ def process_and_upload_batch(tasks_list, cache):
     if not tasks_list:
         return
 
-    print(f"⚡ Subiendo {len(tasks_list)} imágenes en paralelo ({MAX_WORKERS} hilos simúltaneos)...")
+    print(f"⚡ Subiendo {len(tasks_list)} imágenes ({MAX_WORKERS} hilos en paralelo)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(upload_single_task, task) for task in tasks_list]
