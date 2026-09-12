@@ -2,12 +2,13 @@ import os
 import json
 import re
 import shutil
+import urllib.parse
 from datetime import datetime
 from PIL import Image
 
 # Configuración del Repositorio de GitHub
-GITHUB_USER = "TU_USUARIO"    # Cambia por tu nombre de usuario de GitHub
-GITHUB_REPO = "TU_REPO"       # Cambia por el nombre de tu repositorio
+GITHUB_USER = "Nexotvofficial"
+GITHUB_REPO = "Nekumi-Manhwa-"
 BRANCH = "main"
 
 # True para usar el CDN de jsDelivr (más rápido y sin límites de ancho de banda)
@@ -25,6 +26,9 @@ SYSTEM_ITEMS = {
 
 def get_media_url(file_path):
     clean_path = file_path.replace("\\", "/")
+    # Codifica espacios y caracteres especiales para URLs válidas
+    clean_path = urllib.parse.quote(clean_path, safe='/')
+    
     if USE_JSDELIVR:
         return f"https://cdn.jsdelivr.net/gh/{GITHUB_USER}/{GITHUB_REPO}@{BRANCH}/{clean_path}"
     return f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{BRANCH}/{clean_path}"
