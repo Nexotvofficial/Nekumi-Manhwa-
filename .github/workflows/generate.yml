@@ -44,9 +44,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git fetch origin main
+          # Actualizar repositorio remoto para evitar conflictos antes de empujar
+          git pull --rebase origin main
           
-          # Agregamos los archivos solo si existen para evitar el error 'pathspec'
           if [ -d "catalog" ]; then git add catalog/; fi
           if [ -d "img" ]; then git add img/; fi
           if [ -f "mangas.json" ]; then git add mangas.json; fi
@@ -55,6 +55,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
-            git commit -m "auto: optimización, subida a ImgBB y actualización de catálogo [skip ci]"
-            git push origin main --force-with-lease
+            git commit -m "auto: optimización webp y actualización de catálogo [skip ci]"
+            git push origin main
           fi
