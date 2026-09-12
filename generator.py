@@ -2,48 +2,32 @@ import os
 import json
 import re
 import shutil
-import hashlib
 from datetime import datetime
 from PIL import Image
-import requests
-import time
 
-# Configuración principal
+# Configuración del Repositorio de GitHub
+GITHUB_USER = "TU_USUARIO"    # Cambia por tu nombre de usuario de GitHub
+GITHUB_REPO = "TU_REPO"       # Cambia por el nombre de tu repositorio
+BRANCH = "main"
+
+# True para usar el CDN de jsDelivr (más rápido y sin límites de ancho de banda)
+# False para usar URLs directas de raw.githubusercontent.com
+USE_JSDELIVR = True
+
 BASE_DIR = "catalog"
 IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
-CACHE_FILE = "uploaded_cache.json"
-IMGBB_API_KEY = "cac504d03f267f5618868d82138cdab1"
 
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
     "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
-def load_cache():
-    if os.path.exists(CACHE_FILE):
-        try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
-
-def save_cache(cache):
-    try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print(f"❌ Error al guardar el caché: {e}")
-
-def get_file_hash(filepath):
-    hasher = hashlib.sha256()
-    with open(filepath, 'rb') as f:
-        buf = f.read(65536)
-        while len(buf) > 0:
-            hasher.update(buf)
-            buf = f.read(65536)
-    return hasher.hexdigest()
+def get_media_url(file_path):
+    clean_path = file_path.replace("\\", "/")
+    if USE_JSDELIVR:
+        return f"https://cdn.jsdelivr.net/gh/{GITHUB_USER}/{GITHUB_REPO}@{BRANCH}/{clean_path}"
+    return f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{BRANCH}/{clean_path}"
 
 def auto_fix_and_organize():
     if not os.path.exists(BASE_DIR):
@@ -73,36 +57,6 @@ def create_webp(input_path, output_path, quality=80):
         return True
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
-        return False
-
-def upload_image(image_path, file_hash, name, cache):
-    url = "https://api.imgbb.com/1/upload"
-    
-    try:
-        with open(image_path, "rb") as file:
-            payload = {"key": IMGBB_API_KEY}
-            if name:
-                payload["name"] = name
-            files = {"image": file}
-
-            response = requests.post(url, data=payload, files=files, timeout=30)
-            data = response.json()
-
-            if data.get("success"):
-                direct_url = data["data"]["url"]
-                thumb_data = data["data"].get("thumb") or data["data"].get("medium")
-                thumb_url = thumb_data.get("url") if thumb_data else direct_url
-                
-                cache[file_hash] = {"url": direct_url, "thumb": thumb_url}
-                print(f"✅ Subida exitosa: {os.path.basename(image_path)}")
-                time.sleep(1)
-                return True
-            else:
-                error_msg = data.get("error", {}).get("message", "Error desconocido")
-                print(f"⚠️ Error de ImgBB para {os.path.basename(image_path)}: {error_msg}")
-                return False
-    except Exception as e:
-        print(f"⚠️ Excepción al subir {os.path.basename(image_path)}: {e}")
         return False
 
 def extract_chapter_number(folder_name):
@@ -136,13 +90,9 @@ def load_manga_metadata(manga_path, default_title):
     return metadata
 
 def generate_catalog():
-    print("🚀 Escaneando carpetas...")
+    print("🚀 Procesando imágenes y generando URLs de GitHub/CDN...")
     
     auto_fix_and_organize()
-    cache = load_cache()
-
-    upload_tasks = []
-    file_map = {}
 
     catalog_mangas = set()
     if os.path.exists(BASE_DIR):
@@ -159,14 +109,13 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
-    # 1. Procesar portadas
+    # 1. Optimización y conversión de portadas
     for manga_id in all_manga_ids:
         for ext in ['.webp', '.png', '.jpg', '.jpeg']:
             cover_src = os.path.join(IMG_DIR, f"{manga_id}{ext}")
             if os.path.exists(cover_src):
                 target_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
                 
-                # Si no es webp, convertir. Si ya es webp, no re-comprimir.
                 if cover_src != target_cover:
                     if cover_src.lower().endswith('.webp'):
                         shutil.move(cover_src, target_cover)
@@ -174,15 +123,10 @@ def generate_catalog():
                         if create_webp(cover_src, target_cover):
                             if os.path.exists(cover_src):
                                 os.remove(cover_src)
-                
-                if os.path.exists(target_cover):
-                    f_hash = get_file_hash(target_cover)
-                    file_map[target_cover] = f_hash
-                    if f_hash not in cache:
-                        upload_tasks.append((target_cover, f_hash, f"cover_{manga_id}"))
                 break
 
-        # 2. Procesar imágenes de capítulos
+    # 2. Optimización y conversión de imágenes de capítulos
+    for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
             for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
@@ -201,7 +145,6 @@ def generate_catalog():
                     target_webp_name = f"{index+1:03d}.webp"
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                    # Si ya es WebP, evitar re-comprensión con PIL para no alterar el hash
                     if img_name.lower().endswith('.webp'):
                         if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
                             shutil.move(img_path, target_webp_path)
@@ -210,26 +153,7 @@ def generate_catalog():
                             if os.path.exists(img_path) and os.path.abspath(img_path) != os.path.abspath(target_webp_path):
                                 os.remove(img_path)
 
-                    if os.path.exists(target_webp_path):
-                        f_hash = get_file_hash(target_webp_path)
-                        file_map[target_webp_path] = f_hash
-                        if f_hash not in cache:
-                            upload_tasks.append((target_webp_path, f_hash, f"{manga_id}_{chap_folder}_{index+1:03d}"))
-
-    # Subir imágenes pendientes a ImgBB
-    if upload_tasks:
-        print(f"⚡ Subiendo {len(upload_tasks)} imágenes de manera secuencial...")
-        for index, task in enumerate(upload_tasks):
-            image_path, file_hash, name = task
-            upload_image(image_path, file_hash, name, cache)
-            
-            if (index + 1) % 5 == 0 or (index + 1) == len(upload_tasks):
-                save_cache(cache)
-                print(f"⏳ Avance: {index + 1}/{len(upload_tasks)} imágenes procesadas.")
-    else:
-        print("⚡ Todas las imágenes ya están registradas en el caché.")
-
-    # Generar JSON final
+    # 3. Construcción del archivo mangas.json
     manga_list = []
     for manga_id in all_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
@@ -255,10 +179,8 @@ def generate_catalog():
                 pages = []
                 for img_name in images:
                     target_webp_path = os.path.join(chap_path, img_name)
-                    f_hash = file_map.get(target_webp_path) or (get_file_hash(target_webp_path) if os.path.exists(target_webp_path) else None)
-                    
-                    if f_hash and f_hash in cache:
-                        pages.append(cache[f_hash]["url"])
+                    if os.path.exists(target_webp_path):
+                        pages.append(get_media_url(target_webp_path))
 
                 if pages:
                     chapters.append({
@@ -272,19 +194,14 @@ def generate_catalog():
             chapters.sort(key=lambda x: x["number"])
 
         cover_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
-        cover_hash = file_map.get(cover_path) or (get_file_hash(cover_path) if os.path.exists(cover_path) else None)
-        
-        cover_url, cover_thumb = "", ""
-        if cover_hash and cover_hash in cache:
-            cover_url = cache[cover_hash]["url"]
-            cover_thumb = cache[cover_hash]["thumb"]
+        cover_url = get_media_url(cover_path) if os.path.exists(cover_path) else ""
 
         manga_list.append({
             "id": manga_id,
             "title": meta["title"],
             "category": "manhwa",
             "cover": cover_url,
-            "cover_thumb": cover_thumb,
+            "cover_thumb": cover_url,
             "status": meta.get("status", "En emisión"),
             "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
             "genres": meta.get("genres", ["Manhwa"]),
@@ -296,7 +213,7 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}'")
+    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' usando enlaces de GitHub/jsDelivr.")
 
 if __name__ == "__main__":
     generate_catalog()
