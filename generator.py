@@ -42,7 +42,7 @@ def auto_fix_and_organize():
             else:
                 shutil.move(item, target_path)
 
-    # 2. Corregir imágenes sueltas que hayan quedado directamente dentro de catalog/
+    # 2. Corregir imágenes sueltas dentro de catalog/
     loose_images = [
         f for f in os.listdir(BASE_DIR) 
         if os.path.isfile(os.path.join(BASE_DIR, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
@@ -69,7 +69,7 @@ def create_webp(input_path, output_path, quality=80):
         return False
 
 def extract_chapter_number(folder_name):
-    """Extrae el número de capítulo incluso en nombres complejos (ej: cap-01.5, ch_10)"""
+    """Extrae el número de capítulo"""
     match = re.search(r'(\d+(?:\.\d+)?)', folder_name)
     if match:
         num_str = match.group(1)
@@ -108,11 +108,11 @@ def load_manga_metadata(manga_path, default_title):
 
     return metadata
 
-def resolve_or_create_cover(manga_path, manga_folder, manga_id, first_page_local_path):
+def resolve_or_create_cover(manga_path, manga_folder, manga_id):
     """
-    Busca la portada en varias ubicaciones o genera una nueva en img/ automáticamente.
+    Busca únicamente portadas con nombre explícito subidas por el usuario.
     """
-    # 1. Comprobar si existe cover.* dentro del directorio del manhwa
+    # 1. Si existe cover.* dentro de la carpeta del manhwa (catalog/nombre-manhwa/cover.png, cover.jpg, etc.)
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         local_cover = os.path.join(manga_path, f"cover{ext}")
         if os.path.exists(local_cover):
@@ -120,15 +120,15 @@ def resolve_or_create_cover(manga_path, manga_folder, manga_id, first_page_local
             create_webp(local_cover, target_img_path)
             return f"{IMG_BASE_URL}/{manga_id}.webp"
 
-    # 2. Comprobar si ya existe una imagen directa con el id en la carpeta img/
-    existing_img_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
-    if os.path.exists(existing_img_cover):
-        return f"{IMG_BASE_URL}/{manga_id}.webp"
-
-    # 3. Si no existe ninguna portada, tomar la primera página del capítulo 1 y convertirla a img/{manga_id}.webp
-    if first_page_local_path and os.path.exists(first_page_local_path):
-        print(f"🖼️ [Cover Generator] Generando portada automática en '{existing_img_cover}'")
-        if create_webp(first_page_local_path, existing_img_cover):
+    # 2. Si subiste la imagen directamente a la carpeta img/ con el id del manhwa (img/nombre-manhwa.webp, .png, .jpg)
+    for ext in ['.webp', '.png', '.jpg', '.jpeg']:
+        img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
+        if os.path.exists(img_file):
+            # Si no es webp, la convierte
+            if not ext.endswith('.webp'):
+                target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
+                create_webp(img_file, target_img_path)
+                os.remove(img_file)
             return f"{IMG_BASE_URL}/{manga_id}.webp"
 
     return ""
@@ -150,7 +150,6 @@ def generate_catalog():
         
         meta = load_manga_metadata(manga_path, default_title)
         chapters = []
-        first_page_local_path = None
 
         for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
             chap_path = os.path.join(manga_path, chap_folder)
@@ -180,9 +179,6 @@ def generate_catalog():
                     if img_name != target_webp_name:
                         shutil.move(img_path, target_webp_path)
 
-                if first_page_local_path is None:
-                    first_page_local_path = target_webp_path
-
                 page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
                 pages.append(page_url)
 
@@ -198,9 +194,7 @@ def generate_catalog():
         chapters.sort(key=lambda x: x["number"])
 
         if chapters:
-            final_cover = resolve_or_create_cover(manga_path, manga_folder, manga_id, first_page_local_path)
-            if not final_cover:
-                final_cover = chapters[0]["pages"][0]
+            final_cover = resolve_or_create_cover(manga_path, manga_folder, manga_id)
 
             manga_list.append({
                 "id": manga_id,
