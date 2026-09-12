@@ -19,7 +19,7 @@ BOTTOM_CROP_PERCENT = 0.02 # Recorta el 2% inferior de la imagen
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
-    "README.md", "app", "build", ".gitignore"
+    "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
 def auto_fix_and_organize():
@@ -73,7 +73,6 @@ def remove_watermark_and_crop(img, top_percent=TOP_CROP_PERCENT, bottom_percent=
     bottom = int(height * (1 - bottom_percent))
     
     if top < bottom and (top > 0 or bottom < height):
-        # Recortar la imagen omitiendo las marcas de agua de las esquinas/bordes
         return img.crop((0, top, width, bottom))
     
     return img
@@ -81,14 +80,17 @@ def remove_watermark_and_crop(img, top_percent=TOP_CROP_PERCENT, bottom_percent=
 def create_webp(input_path, output_path, quality=80, is_page=False):
     """Convierte, remueve marcas de agua y optimiza imágenes a WebP"""
     try:
+        # Si el archivo origen y destino son diferentes o se requiere recortar marca de agua
         with Image.open(input_path) as img:
             img = img.convert("RGB")
             
-            # Aplica recorte de marca de agua solo si es una página de capítulo
             if is_page:
                 img = remove_watermark_and_crop(img)
-                
+            
+            # Crear directorio destino si no existe
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             img.save(output_path, "WEBP", quality=quality)
+            
         return True
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
@@ -147,10 +149,10 @@ def get_cover_from_img_dir(manga_id):
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
         if os.path.exists(img_file):
-            if not ext.endswith('.webp'):
-                target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
+            target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
+            if img_file != target_img_path:
                 if create_webp(img_file, target_img_path, is_page=False):
-                    if os.path.exists(img_file) and img_file != target_img_path:
+                    if os.path.exists(img_file):
                         os.remove(img_file)
             return f"{IMG_BASE_URL}/{manga_id}.webp"
 
@@ -210,10 +212,16 @@ def generate_catalog():
                     target_webp_name = f"{index+1:03d}.webp"
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                    # Procesa la imagen aplicando limpieza/recorte de marcas de agua
-                    create_webp(img_path, target_webp_path, is_page=True)
-                    if os.path.exists(img_path) and img_path != target_webp_path:
-                        os.remove(img_path)
+                    # Si el archivo original no es la ruta final WebP numerada
+                    if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
+                        if create_webp(img_path, target_webp_path, is_page=True):
+                            if os.path.exists(img_path):
+                                os.remove(img_path)
+                    else:
+                        # Si ya es el archivo final .webp, se procesa a un temporal y se reemplaza
+                        temp_path = os.path.join(chap_path, f"temp_{target_webp_name}")
+                        if create_webp(img_path, temp_path, is_page=True):
+                            shutil.move(temp_path, target_webp_path)
 
                     page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
                     pages.append(page_url)
