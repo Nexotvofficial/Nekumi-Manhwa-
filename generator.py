@@ -2,6 +2,7 @@ import os
 import json
 import re
 import shutil
+import hashlib
 from datetime import datetime
 from PIL import Image
 import cv2
@@ -12,6 +13,7 @@ import requests
 BASE_DIR = "catalog"
 IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
+CACHE_FILE = "uploaded_cache.json"
 IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
 # Porcentaje de seguridad de recorte (ajustable)
@@ -21,19 +23,44 @@ BOTTOM_CROP_PERCENT = 0.04 # 4% inferior
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
-    "README.md", "app", "build", ".gitignore", ".workflows"
+    "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
+def load_cache():
+    """Carga el historial de imágenes ya subidas a ImgBB"""
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"⚠️ Error al leer el caché: {e}. Se creará uno nuevo.")
+    return {}
+
+def save_cache(cache):
+    """Guarda el historial de imágenes subidas"""
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"❌ Error al guardar el caché: {e}")
+
+def get_file_hash(filepath):
+    """Calcula el hash SHA256 de un archivo para validar si cambió"""
+    hasher = hashlib.sha256()
+    with open(filepath, 'rb') as f:
+        buf = f.read(65536)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(65536)
+    return hasher.hexdigest()
+
 def auto_fix_and_organize():
-    """
-    Anticipa y corrige errores de estructura de archivos/carpetas subidos por el usuario.
-    """
+    """Anticipa y corrige errores de estructura de archivos/carpetas"""
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR, exist_ok=True)
     if not os.path.exists(IMG_DIR):
         os.makedirs(IMG_DIR, exist_ok=True)
 
-    # 1. Corregir carpetas subidas por error en la raíz
     for item in os.listdir("."):
         if os.path.isdir(item) and item not in SYSTEM_ITEMS:
             target_path = os.path.join(BASE_DIR, item)
@@ -48,7 +75,6 @@ def auto_fix_and_organize():
             else:
                 shutil.move(item, target_path)
 
-    # 2. Corregir imágenes sueltas dentro de catalog/
     loose_images = [
         f for f in os.listdir(BASE_DIR) 
         if os.path.isfile(os.path.join(BASE_DIR, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
@@ -65,27 +91,18 @@ def auto_fix_and_organize():
             shutil.move(os.path.join(BASE_DIR, img), os.path.join(target_chap_dir, img))
 
 def clean_watermark_cv2(image_path):
-    """
-    Usa OpenCV Inpainting para detectar textos/logos superpuestos en los bordes
-    y eliminarlos reconstruyendo el fondo.
-    """
+    """Elimina marcas de agua/logos en bordes mediante OpenCV Inpainting"""
     img = cv2.imread(image_path)
     if img is None:
         return None
 
     h, w, _ = img.shape
-
-    # 1. Recorte preventivo en bordes
     top_crop = int(h * TOP_CROP_PERCENT)
     bottom_crop = int(h * (1 - BOTTOM_CROP_PERCENT))
     img = img[top_crop:bottom_crop, 0:w]
 
     h, w, _ = img.shape
-
-    # 2. Convertir a escala de grises
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # 3. Crear máscara para detectar texto/logos
     mask = np.zeros((h, w), dtype=np.uint8)
     margin = min(120, int(h * 0.12))
 
@@ -101,7 +118,6 @@ def clean_watermark_cv2(image_path):
     kernel = np.ones((3, 3), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
 
-    # 4. Aplicar Inpainting
     if np.sum(mask) > 0:
         cleaned_img = cv2.inpaint(img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
     else:
@@ -111,7 +127,7 @@ def clean_watermark_cv2(image_path):
     return Image.fromarray(cleaned_rgb)
 
 def create_webp(input_path, output_path, quality=80, is_page=False):
-    """Convierte, limpia marcas de agua y guarda la imagen final en WebP"""
+    """Convierte la imagen a WebP"""
     try:
         if is_page:
             pil_img = clean_watermark_cv2(input_path)
@@ -127,29 +143,46 @@ def create_webp(input_path, output_path, quality=80, is_page=False):
         print(f"❌ Error procesando {input_path}: {e}")
         return False
 
-def upload_to_imgbb(image_path, name=None):
+def upload_to_imgbb(image_path, cache, name=None):
     """
-    Sube una imagen local a la API de ImgBB y devuelve el enlace directo CDN.
+    Sube una imagen local a ImgBB si no está en el caché.
+    Retorna un diccionario: {"url": ..., "thumb": ...}
     """
+    file_hash = get_file_hash(image_path)
+    
+    # ⚡ Verificar si la imagen ya fue subida anteriormente
+    if file_hash in cache:
+        print(f"⚡ [Caché] {os.path.basename(image_path)} ya subida previamente.")
+        return cache[file_hash]
+
     url = "https://api.imgbb.com/1/upload"
     try:
         with open(image_path, "rb") as file:
-            payload = {
-                "key": IMGBB_API_KEY,
-            }
+            payload = {"key": IMGBB_API_KEY}
             if name:
                 payload["name"] = name
             
-            files = {
-                "image": file
-            }
+            files = {"image": file}
             
             response = requests.post(url, data=payload, files=files, timeout=30)
             data = response.json()
             
             if data.get("success"):
                 direct_url = data["data"]["url"]
-                return direct_url
+                
+                # Obtener la URL de la miniatura (thumb / medium)
+                thumb_data = data["data"].get("thumb") or data["data"].get("medium")
+                thumb_url = thumb_data.get("url") if thumb_data else direct_url
+                
+                result = {
+                    "url": direct_url,
+                    "thumb": thumb_url
+                }
+                
+                # Guardar resultado en el caché
+                cache[file_hash] = result
+                save_cache(cache)
+                return result
             else:
                 print(f"❌ Error de ImgBB API: {data.get('error', {}).get('message')}")
     except Exception as e:
@@ -158,7 +191,6 @@ def upload_to_imgbb(image_path, name=None):
     return None
 
 def extract_chapter_number(folder_name):
-    """Extrae el número de capítulo"""
     match = re.search(r'(\d+(?:\.\d+)?)', folder_name)
     if match:
         num_str = match.group(1)
@@ -166,11 +198,9 @@ def extract_chapter_number(folder_name):
     return 1
 
 def natural_sort_key(s):
-    """Ordenamiento natural para archivos de capítulos"""
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 def load_manga_metadata(manga_path, default_title):
-    """Carga metadatos de info.json o info.txt si existen"""
     metadata = {
         "title": default_title,
         "synopsis": "Sinopsis no disponible por el momento.",
@@ -200,12 +230,10 @@ def load_manga_metadata(manga_path, default_title):
 
     return metadata
 
-def get_cover_from_img_dir(manga_id):
-    """
-    Procesa y sube únicamente la portada en la carpeta img/ a ImgBB.
-    """
+def get_cover_from_img_dir(manga_id, cache):
+    """Procesa y sube la portada en img/ obteniendo portada original y miniatura"""
     if not os.path.exists(IMG_DIR):
-        return ""
+        return "", ""
 
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
@@ -216,17 +244,18 @@ def get_cover_from_img_dir(manga_id):
                     if os.path.exists(img_file):
                         os.remove(img_file)
             
-            print(f"📤 Subiendo portada de '{manga_id}' a ImgBB...")
-            uploaded_url = upload_to_imgbb(target_img_path, name=f"cover_{manga_id}")
-            if uploaded_url:
-                return uploaded_url
+            print(f"📤 Procesando portada para '{manga_id}'...")
+            uploaded = upload_to_imgbb(target_img_path, cache, name=f"cover_{manga_id}")
+            if uploaded:
+                return uploaded["url"], uploaded["thumb"]
 
-    return ""
+    return "", ""
 
 def generate_catalog():
-    print("🚀 Iniciando generación automática de catálogo con subida a ImgBB...")
+    print("🚀 Iniciando generación automática de catálogo con Caché y Miniaturas...")
     
     auto_fix_and_organize()
+    cache = load_cache()
 
     manga_list = []
     
@@ -283,11 +312,11 @@ def generate_catalog():
                         if create_webp(img_path, temp_path, is_page=True):
                             shutil.move(temp_path, target_webp_path)
 
-                    print(f"📤 Subiendo {manga_id} / {chap_folder} / {target_webp_name} a ImgBB...")
-                    imgbb_url = upload_to_imgbb(target_webp_path, name=f"{manga_id}_{chap_folder}_{index+1:03d}")
+                    print(f"📤 Procesando {manga_id} / {chap_folder} / {target_webp_name}...")
+                    imgbb_res = upload_to_imgbb(target_webp_path, cache, name=f"{manga_id}_{chap_folder}_{index+1:03d}")
                     
-                    if imgbb_url:
-                        pages.append(imgbb_url)
+                    if imgbb_res:
+                        pages.append(imgbb_res["url"])
 
                 if pages:
                     chapters.append({
@@ -300,13 +329,14 @@ def generate_catalog():
 
             chapters.sort(key=lambda x: x["number"])
 
-        cover_url = get_cover_from_img_dir(manga_id)
+        cover_url, cover_thumb = get_cover_from_img_dir(manga_id, cache)
 
         manga_list.append({
             "id": manga_id,
             "title": meta["title"],
             "category": "manhwa",
             "cover": cover_url,
+            "cover_thumb": cover_thumb,
             "status": meta.get("status", "En emisión"),
             "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
             "genres": meta.get("genres", ["Manhwa"]),
@@ -318,7 +348,8 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' con enlaces ImgBB CDN")
+    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}'")
+    print(f"⚡ Caché actualizado en '{CACHE_FILE}'")
     print(f"📊 Total de manhwas procesados: {len(manga_list)}")
 
 if __name__ == "__main__":
