@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: write
-  workflows: write
+  actions: write
 
 jobs:
   build-and-update:
@@ -46,7 +46,7 @@ jobs:
           
           git fetch origin main
           
-          # Aseguramos solo trackear los contenidos generados y NO los workflows
+          # Agregamos solo los datos generados para evitar tocar el YAML
           git add catalog/ img/ mangas.json uploaded_cache.json
           
           if git diff --staged --quiet; then
