@@ -30,7 +30,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pillow
+          pip install pillow opencv-python-headless numpy
 
       - name: Run Generator Script
         run: python generator.py
@@ -42,16 +42,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 1. Traer los cambios del remoto usando merge en estrategia "ours" para evitar conflictos
           git fetch origin main
-          
-          # 2. Agregar únicamente carpetas de contenido y el JSON recién generado
           git add catalog/ img/ mangas.json
           
-          # 3. Guardar y hacer push forzado controlado
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
-            git commit -m "auto: actualización de catálogo y conversión a webp [skip ci]"
+            git commit -m "auto: remoción inteligente de marcas de agua y generación WebP [skip ci]"
             git push origin main --force-with-lease
           fi
