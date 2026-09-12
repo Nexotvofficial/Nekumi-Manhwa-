@@ -89,6 +89,9 @@ def load_manga_metadata(manga_path, default_title):
         "genres": ["Manhwa", "Acción"]
     }
     
+    if not os.path.exists(manga_path):
+        return metadata
+
     json_info = os.path.join(manga_path, "info.json")
     txt_info = os.path.join(manga_path, "info.txt")
 
@@ -112,10 +115,12 @@ def get_cover_from_img_dir(manga_id):
     """
     Busca únicamente la portada en la carpeta img/ asociada al ID del manhwa.
     """
+    if not os.path.exists(IMG_DIR):
+        return ""
+
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
         if os.path.exists(img_file):
-            # Si la subiste en png/jpg, la optimiza a webp automáticamente
             if not ext.endswith('.webp'):
                 target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
                 if create_webp(img_file, target_img_path):
@@ -131,61 +136,78 @@ def generate_catalog():
     auto_fix_and_organize()
 
     manga_list = []
+    
+    # 1. Obtener los IDs desde las carpetas dentro de catalog/
+    catalog_mangas = set()
+    if os.path.exists(BASE_DIR):
+        for f in os.listdir(BASE_DIR):
+            if os.path.isdir(os.path.join(BASE_DIR, f)):
+                catalog_mangas.add(f.lower().replace(" ", "-"))
 
-    for manga_folder in sorted(os.listdir(BASE_DIR)):
+    # 2. Obtener los IDs desde las imágenes de portada dentro de img/
+    img_mangas = set()
+    if os.path.exists(IMG_DIR):
+        for f in os.listdir(IMG_DIR):
+            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                name_without_ext = os.path.splitext(f)[0]
+                img_mangas.add(name_without_ext.lower().replace(" ", "-"))
+
+    # 3. Unir ambos para procesar todos los manhwas detectados
+    all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
+
+    for manga_id in all_manga_ids:
+        # Busca la carpeta usando el ID o el nombre original si coincide
+        manga_folder = manga_id
         manga_path = os.path.join(BASE_DIR, manga_folder)
-        if not os.path.isdir(manga_path):
-            continue
-
-        manga_id = manga_folder.lower().replace(" ", "-")
-        default_title = manga_folder.replace("-", " ").title()
         
+        default_title = manga_id.replace("-", " ").title()
         meta = load_manga_metadata(manga_path, default_title)
         chapters = []
 
-        for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
-            chap_path = os.path.join(manga_path, chap_folder)
-            if not os.path.isdir(chap_path):
-                continue
+        # Si existe la carpeta en catalog/, procesa los capítulos
+        if os.path.exists(manga_path) and os.path.isdir(manga_path):
+            for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
+                chap_path = os.path.join(manga_path, chap_folder)
+                if not os.path.isdir(chap_path):
+                    continue
 
-            chap_id = chap_folder.lower().replace(" ", "-")
-            chap_num = extract_chapter_number(chap_folder)
-            
-            raw_images = [
-                f for f in os.listdir(chap_path) 
-                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
-            ]
-            images = sorted(raw_images, key=natural_sort_key)
+                chap_id = chap_folder.lower().replace(" ", "-")
+                chap_num = extract_chapter_number(chap_folder)
+                
+                raw_images = [
+                    f for f in os.listdir(chap_path) 
+                    if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
+                ]
+                images = sorted(raw_images, key=natural_sort_key)
 
-            pages = []
-            for index, img_name in enumerate(images):
-                img_path = os.path.join(chap_path, img_name)
-                target_webp_name = f"{index+1:03d}.webp"
-                target_webp_path = os.path.join(chap_path, target_webp_name)
+                pages = []
+                for index, img_name in enumerate(images):
+                    img_path = os.path.join(chap_path, img_name)
+                    target_webp_name = f"{index+1:03d}.webp"
+                    target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                if not img_name.lower().endswith('.webp'):
-                    if create_webp(img_path, target_webp_path):
-                        if os.path.exists(img_path) and img_path != target_webp_path:
-                            os.remove(img_path)
-                else:
-                    if img_name != target_webp_name:
-                        shutil.move(img_path, target_webp_path)
+                    if not img_name.lower().endswith('.webp'):
+                        if create_webp(img_path, target_webp_path):
+                            if os.path.exists(img_path) and img_path != target_webp_path:
+                                os.remove(img_path)
+                    else:
+                        if img_name != target_webp_name:
+                            shutil.move(img_path, target_webp_path)
 
-                page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
-                pages.append(page_url)
+                    page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
+                    pages.append(page_url)
 
-            if pages:
-                chapters.append({
-                    "id": chap_id,
-                    "number": chap_num,
-                    "title": f"Capítulo {chap_num}",
-                    "pages_count": len(pages),
-                    "pages": pages
-                })
+                if pages:
+                    chapters.append({
+                        "id": chap_id,
+                        "number": chap_num,
+                        "title": f"Capítulo {chap_num}",
+                        "pages_count": len(pages),
+                        "pages": pages
+                    })
 
-        chapters.sort(key=lambda x: x["number"])
+            chapters.sort(key=lambda x: x["number"])
 
-        # Permite agregar el manhwa incluso si aún no tiene capítulos cargados
         cover_url = get_cover_from_img_dir(manga_id)
 
         manga_list.append({
