@@ -16,8 +16,8 @@ OUTPUT_JSON = "mangas.json"
 CACHE_FILE = "uploaded_cache.json"
 IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
-# Reducido a 2 hilos para evitar rate-limiting de ImgBB
-MAX_WORKERS = 2
+# 1 solo hilo para evitar bloqueos por parte de ImgBB a las IPs de GitHub
+MAX_WORKERS = 1
 
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
@@ -100,15 +100,17 @@ def upload_single_task(task):
                     thumb_data = data["data"].get("thumb") or data["data"].get("medium")
                     thumb_url = thumb_data.get("url") if thumb_data else direct_url
                     
-                    # Pausa estratégica entre peticiones para evitar bloqueos
-                    time.sleep(0.5)
+                    # Pausa larga para no detonar el antibot de ImgBB
+                    time.sleep(1.5)
                     return file_hash, {"url": direct_url, "thumb": thumb_url}
                 else:
-                    print(f"⚠️ Reintento {attempt+1} en ImgBB para {os.path.basename(image_path)}")
-                    time.sleep(3)
+                    error_msg = data.get("error", {}).get("message", "Error desconocido")
+                    status_code = data.get("status_code", "N/A")
+                    print(f"⚠️ Fallo en ImgBB [{status_code}]: {error_msg} -> Reintento {attempt+1} para {os.path.basename(image_path)}")
+                    time.sleep(5) # Espera 5 segundos antes de reintentar si falló
         except Exception as e:
-            print(f"⚠️ Excepción en reintento {attempt+1}: {e}")
-            time.sleep(3)
+            print(f"⚠️ Excepción (reintento {attempt+1}): {e} -> {os.path.basename(image_path)}")
+            time.sleep(5)
 
     return file_hash, None
 
@@ -116,7 +118,7 @@ def process_and_upload_batch(tasks_list, cache):
     if not tasks_list:
         return
 
-    print(f"⚡ Subiendo {len(tasks_list)} imágenes ({MAX_WORKERS} hilos en paralelo)...")
+    print(f"⚡ Subiendo {len(tasks_list)} imágenes (1 por 1 para evitar bloqueos)...")
     
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(upload_single_task, task) for task in tasks_list]
@@ -127,7 +129,7 @@ def process_and_upload_batch(tasks_list, cache):
             if result:
                 cache[file_hash] = result
                 completed_count += 1
-                if completed_count % 10 == 0 or completed_count == len(tasks_list):
+                if completed_count % 5 == 0 or completed_count == len(tasks_list):
                     save_cache(cache)
                     print(f"⏳ Avance: {completed_count}/{len(tasks_list)} imágenes subidas.")
 
