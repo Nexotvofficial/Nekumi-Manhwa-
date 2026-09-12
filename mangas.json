@@ -3,7 +3,7 @@
     "id": "crazy-demon",
     "title": "Crazy Demon",
     "category": "manhwa",
-    "cover": "",
+    "cover": "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/img/crazy-demon.webp",
     "status": "En emisión",
     "synopsis": "Sinopsis no disponible por el momento.",
     "genres": [
@@ -11,7 +11,7 @@
       "Acción"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-12 03:03:51 UTC",
+    "last_updated": "2026-09-12 03:05:39 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -135,7 +135,7 @@
       "Acción"
     ],
     "total_chapters": 1,
-    "last_updated": "2026-09-12 03:03:51 UTC",
+    "last_updated": "2026-09-12 03:05:39 UTC",
     "chapters": [
       {
         "id": "cap-1",
