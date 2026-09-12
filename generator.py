@@ -7,12 +7,14 @@ from PIL import Image
 
 # Configuración principal
 BASE_DIR = "catalog"
+IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
 BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog"
+IMG_BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/img"
 
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
-    ".github", ".git", "catalog", "generator.py", "mangas.json", 
+    ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
     "README.md", "app", "build", ".gitignore"
 }
 
@@ -22,6 +24,8 @@ def auto_fix_and_organize():
     """
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR, exist_ok=True)
+    if not os.path.exists(IMG_DIR):
+        os.makedirs(IMG_DIR, exist_ok=True)
 
     # 1. Corregir carpetas subidas por error en la raíz
     for item in os.listdir("."):
@@ -45,7 +49,6 @@ def auto_fix_and_organize():
     ]
     
     if loose_images:
-        # Detectar la carpeta de manhwa más reciente o usar una por defecto
         existing_mangas = [d for d in os.listdir(BASE_DIR) if os.path.isdir(os.path.join(BASE_DIR, d))]
         target_manga = existing_mangas[0] if existing_mangas else "super-evolution"
         target_chap_dir = os.path.join(BASE_DIR, target_manga, "cap-1")
@@ -74,13 +77,11 @@ def extract_chapter_number(folder_name):
     return 1
 
 def natural_sort_key(s):
-    """Ordenamiento natural para que '2.webp' vaya antes que '10.webp'"""
+    """Ordenamiento natural para archivos de capítulos"""
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 def load_manga_metadata(manga_path, default_title):
-    """
-    Futuro-Proof: Carga datos de sinopsis, estado y géneros si existe un info.json o info.txt
-    """
+    """Carga metadatos de info.json o info.txt si existen"""
     metadata = {
         "title": default_title,
         "synopsis": "Sinopsis no disponible por el momento.",
@@ -107,15 +108,38 @@ def load_manga_metadata(manga_path, default_title):
 
     return metadata
 
+def resolve_or_create_cover(manga_path, manga_folder, manga_id, first_page_local_path):
+    """
+    Busca la portada en varias ubicaciones o genera una nueva en img/ automáticamente.
+    """
+    # 1. Comprobar si existe cover.* dentro del directorio del manhwa
+    for ext in ['.webp', '.png', '.jpg', '.jpeg']:
+        local_cover = os.path.join(manga_path, f"cover{ext}")
+        if os.path.exists(local_cover):
+            target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
+            create_webp(local_cover, target_img_path)
+            return f"{IMG_BASE_URL}/{manga_id}.webp"
+
+    # 2. Comprobar si ya existe una imagen directa con el id en la carpeta img/
+    existing_img_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
+    if os.path.exists(existing_img_cover):
+        return f"{IMG_BASE_URL}/{manga_id}.webp"
+
+    # 3. Si no existe ninguna portada, tomar la primera página del capítulo 1 y convertirla a img/{manga_id}.webp
+    if first_page_local_path and os.path.exists(first_page_local_path):
+        print(f"🖼️ [Cover Generator] Generando portada automática en '{existing_img_cover}'")
+        if create_webp(first_page_local_path, existing_img_cover):
+            return f"{IMG_BASE_URL}/{manga_id}.webp"
+
+    return ""
+
 def generate_catalog():
     print("🚀 Iniciando generación automática de catálogo...")
     
-    # 1. Ejecutar auto-reparador de carpetas y archivos
     auto_fix_and_organize()
 
     manga_list = []
 
-    # 2. Recorrer manhwas
     for manga_folder in sorted(os.listdir(BASE_DIR)):
         manga_path = os.path.join(BASE_DIR, manga_folder)
         if not os.path.isdir(manga_path):
@@ -124,20 +148,10 @@ def generate_catalog():
         manga_id = manga_folder.lower().replace(" ", "-")
         default_title = manga_folder.replace("-", " ").title()
         
-        # Cargar metadatos extendidos
         meta = load_manga_metadata(manga_path, default_title)
-
         chapters = []
-        custom_cover_url = ""
+        first_page_local_path = None
 
-        # Comprobar si existe una portada dedicada en la raíz del manhwa (cover.png / cover.jpg / cover.webp)
-        for ext in ['.webp', '.png', '.jpg', '.jpeg']:
-            possible_cover = f"cover{ext}"
-            if os.path.exists(os.path.join(manga_path, possible_cover)):
-                custom_cover_url = f"{BASE_URL}/{manga_folder}/{possible_cover}"
-                break
-
-        # Recorrer capítulos del manhwa
         for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
             chap_path = os.path.join(manga_path, chap_folder)
             if not os.path.isdir(chap_path):
@@ -158,15 +172,16 @@ def generate_catalog():
                 target_webp_name = f"{index+1:03d}.webp"
                 target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                # 1. Si no es WebP, convertir y eliminar original
                 if not img_name.lower().endswith('.webp'):
                     if create_webp(img_path, target_webp_path):
                         if os.path.exists(img_path) and img_path != target_webp_path:
                             os.remove(img_path)
                 else:
-                    # 2. Si ya es WebP pero no tiene el formato de 3 dígitos (ej: 01.webp), renombrarlo
                     if img_name != target_webp_name:
                         shutil.move(img_path, target_webp_path)
+
+                if first_page_local_path is None:
+                    first_page_local_path = target_webp_path
 
                 page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
                 pages.append(page_url)
@@ -183,8 +198,9 @@ def generate_catalog():
         chapters.sort(key=lambda x: x["number"])
 
         if chapters:
-            # Si no hay portada personalizada, usa la primera página del capítulo 1
-            final_cover = custom_cover_url if custom_cover_url else chapters[0]["pages"][0]
+            final_cover = resolve_or_create_cover(manga_path, manga_folder, manga_id, first_page_local_path)
+            if not final_cover:
+                final_cover = chapters[0]["pages"][0]
 
             manga_list.append({
                 "id": manga_id,
@@ -199,7 +215,6 @@ def generate_catalog():
                 "chapters": chapters
             })
 
-    # Output final con codificación UTF-8
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
