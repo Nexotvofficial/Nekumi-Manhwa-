@@ -6,13 +6,13 @@ from datetime import datetime
 from PIL import Image
 import cv2
 import numpy as np
+import requests
 
 # Configuración principal
 BASE_DIR = "catalog"
 IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
-BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog"
-IMG_BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/img"
+IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
 # Porcentaje de seguridad de recorte (ajustable)
 TOP_CROP_PERCENT = 0.03    # 3% superior
@@ -80,40 +80,33 @@ def clean_watermark_cv2(image_path):
     bottom_crop = int(h * (1 - BOTTOM_CROP_PERCENT))
     img = img[top_crop:bottom_crop, 0:w]
 
-    # Recalcular dimensiones tras recorte
     h, w, _ = img.shape
 
-    # 2. Convertir a escala de grises para detectar contraste de texto/marcas
+    # 2. Convertir a escala de grises
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 3. Crear máscara para detectar texto/logos brillantes o muy oscuros en bordes
+    # 3. Crear máscara para detectar texto/logos
     mask = np.zeros((h, w), dtype=np.uint8)
-
-    # Definir franjas críticas donde suelen ponerse las marcas (primeros y últimos 100px)
     margin = min(120, int(h * 0.12))
 
-    # Detectar zonas de alto contraste en los márgenes superior e inferior
     top_region = gray[0:margin, :]
     bottom_region = gray[h-margin:h, :]
 
-    # Umbralizado adaptativo para aislar caracteres / marcas
     _, top_thresh = cv2.threshold(top_region, 220, 255, cv2.THRESH_BINARY)
     _, bottom_thresh = cv2.threshold(bottom_region, 220, 255, cv2.THRESH_BINARY)
 
     mask[0:margin, :] = top_thresh
     mask[h-margin:h, :] = bottom_thresh
 
-    # Dilatar la máscara para cubrir bordes de las letras
     kernel = np.ones((3, 3), np.uint8)
     mask = cv2.dilate(mask, kernel, iterations=2)
 
-    # 4. Aplicar Inpainting (Telea Algorithm) si se detectó alguna marca
+    # 4. Aplicar Inpainting
     if np.sum(mask) > 0:
         cleaned_img = cv2.inpaint(img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
     else:
         cleaned_img = img
 
-    # Convertir de vuelta a RGB para Pillow
     cleaned_rgb = cv2.cvtColor(cleaned_img, cv2.COLOR_BGR2RGB)
     return Image.fromarray(cleaned_rgb)
 
@@ -133,6 +126,36 @@ def create_webp(input_path, output_path, quality=80, is_page=False):
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
         return False
+
+def upload_to_imgbb(image_path, name=None):
+    """
+    Sube una imagen local a la API de ImgBB y devuelve el enlace directo CDN.
+    """
+    url = "https://api.imgbb.com/1/upload"
+    try:
+        with open(image_path, "rb") as file:
+            payload = {
+                "key": IMGBB_API_KEY,
+            }
+            if name:
+                payload["name"] = name
+            
+            files = {
+                "image": file
+            }
+            
+            response = requests.post(url, data=payload, files=files, timeout=30)
+            data = response.json()
+            
+            if data.get("success"):
+                direct_url = data["data"]["url"]
+                return direct_url
+            else:
+                print(f"❌ Error de ImgBB API: {data.get('error', {}).get('message')}")
+    except Exception as e:
+        print(f"❌ Excepción al subir a ImgBB {image_path}: {e}")
+    
+    return None
 
 def extract_chapter_number(folder_name):
     """Extrae el número de capítulo"""
@@ -179,7 +202,7 @@ def load_manga_metadata(manga_path, default_title):
 
 def get_cover_from_img_dir(manga_id):
     """
-    Busca únicamente la portada en la carpeta img/ asociada al ID del manhwa.
+    Procesa y sube únicamente la portada en la carpeta img/ a ImgBB.
     """
     if not os.path.exists(IMG_DIR):
         return ""
@@ -192,12 +215,16 @@ def get_cover_from_img_dir(manga_id):
                 if create_webp(img_file, target_img_path, is_page=False):
                     if os.path.exists(img_file):
                         os.remove(img_file)
-            return f"{IMG_BASE_URL}/{manga_id}.webp"
+            
+            print(f"📤 Subiendo portada de '{manga_id}' a ImgBB...")
+            uploaded_url = upload_to_imgbb(target_img_path, name=f"cover_{manga_id}")
+            if uploaded_url:
+                return uploaded_url
 
     return ""
 
 def generate_catalog():
-    print("🚀 Iniciando generación automática de catálogo con limpieza OpenCV...")
+    print("🚀 Iniciando generación automática de catálogo con subida a ImgBB...")
     
     auto_fix_and_organize()
 
@@ -256,8 +283,11 @@ def generate_catalog():
                         if create_webp(img_path, temp_path, is_page=True):
                             shutil.move(temp_path, target_webp_path)
 
-                    page_url = f"{BASE_URL}/{manga_folder}/{chap_folder}/{target_webp_name}"
-                    pages.append(page_url)
+                    print(f"📤 Subiendo {manga_id} / {chap_folder} / {target_webp_name} a ImgBB...")
+                    imgbb_url = upload_to_imgbb(target_webp_path, name=f"{manga_id}_{chap_folder}_{index+1:03d}")
+                    
+                    if imgbb_url:
+                        pages.append(imgbb_url)
 
                 if pages:
                     chapters.append({
@@ -288,7 +318,7 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}'")
+    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' con enlaces ImgBB CDN")
     print(f"📊 Total de manhwas procesados: {len(manga_list)}")
 
 if __name__ == "__main__":
