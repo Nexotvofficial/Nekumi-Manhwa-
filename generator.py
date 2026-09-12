@@ -185,21 +185,21 @@ def generate_catalog():
 
         chapters.sort(key=lambda x: x["number"])
 
-        if chapters:
-            cover_url = get_cover_from_img_dir(manga_id)
+        # Permite agregar el manhwa incluso si aún no tiene capítulos cargados
+        cover_url = get_cover_from_img_dir(manga_id)
 
-            manga_list.append({
-                "id": manga_id,
-                "title": meta["title"],
-                "category": "manhwa",
-                "cover": cover_url,
-                "status": meta.get("status", "En emisión"),
-                "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
-                "genres": meta.get("genres", ["Manhwa"]),
-                "total_chapters": len(chapters),
-                "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                "chapters": chapters
-            })
+        manga_list.append({
+            "id": manga_id,
+            "title": meta["title"],
+            "category": "manhwa",
+            "cover": cover_url,
+            "status": meta.get("status", "En emisión"),
+            "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
+            "genres": meta.get("genres", ["Manhwa"]),
+            "total_chapters": len(chapters),
+            "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "chapters": chapters
+        })
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
