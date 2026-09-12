@@ -4,6 +4,8 @@ import re
 import shutil
 from datetime import datetime
 from PIL import Image
+import cv2
+import numpy as np
 
 # Configuración principal
 BASE_DIR = "catalog"
@@ -12,9 +14,9 @@ OUTPUT_JSON = "mangas.json"
 BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/catalog"
 IMG_BASE_URL = "https://raw.githubusercontent.com/Nexotvofficial/Nekumi-Manhwa-/main/img"
 
-# Porcentaje de recorte para eliminar marcas de agua en bordes superior e inferior (0.0 = sin recorte)
-TOP_CROP_PERCENT = 0.02    # Recorta el 2% superior de la imagen
-BOTTOM_CROP_PERCENT = 0.02 # Recorta el 2% inferior de la imagen
+# Porcentaje de seguridad de recorte (ajustable)
+TOP_CROP_PERCENT = 0.03    # 3% superior
+BOTTOM_CROP_PERCENT = 0.04 # 4% inferior
 
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
@@ -62,35 +64,71 @@ def auto_fix_and_organize():
         for img in loose_images:
             shutil.move(os.path.join(BASE_DIR, img), os.path.join(target_chap_dir, img))
 
-def remove_watermark_and_crop(img, top_percent=TOP_CROP_PERCENT, bottom_percent=BOTTOM_CROP_PERCENT):
+def clean_watermark_cv2(image_path):
     """
-    Elimina marcas de agua recortando bordes superior e inferior de la imagen.
+    Usa OpenCV Inpainting para detectar textos/logos superpuestos en los bordes
+    y eliminarlos reconstruyendo el fondo.
     """
-    width, height = img.size
-    
-    # Calcular coordenadas para el recorte
-    top = int(height * top_percent)
-    bottom = int(height * (1 - bottom_percent))
-    
-    if top < bottom and (top > 0 or bottom < height):
-        return img.crop((0, top, width, bottom))
-    
-    return img
+    img = cv2.imread(image_path)
+    if img is None:
+        return None
+
+    h, w, _ = img.shape
+
+    # 1. Recorte preventivo en bordes
+    top_crop = int(h * TOP_CROP_PERCENT)
+    bottom_crop = int(h * (1 - BOTTOM_CROP_PERCENT))
+    img = img[top_crop:bottom_crop, 0:w]
+
+    # Recalcular dimensiones tras recorte
+    h, w, _ = img.shape
+
+    # 2. Convertir a escala de grises para detectar contraste de texto/marcas
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # 3. Crear máscara para detectar texto/logos brillantes o muy oscuros en bordes
+    mask = np.zeros((h, w), dtype=np.uint8)
+
+    # Definir franjas críticas donde suelen ponerse las marcas (primeros y últimos 100px)
+    margin = min(120, int(h * 0.12))
+
+    # Detectar zonas de alto contraste en los márgenes superior e inferior
+    top_region = gray[0:margin, :]
+    bottom_region = gray[h-margin:h, :]
+
+    # Umbralizado adaptativo para aislar caracteres / marcas
+    _, top_thresh = cv2.threshold(top_region, 220, 255, cv2.THRESH_BINARY)
+    _, bottom_thresh = cv2.threshold(bottom_region, 220, 255, cv2.THRESH_BINARY)
+
+    mask[0:margin, :] = top_thresh
+    mask[h-margin:h, :] = bottom_thresh
+
+    # Dilatar la máscara para cubrir bordes de las letras
+    kernel = np.ones((3, 3), np.uint8)
+    mask = cv2.dilate(mask, kernel, iterations=2)
+
+    # 4. Aplicar Inpainting (Telea Algorithm) si se detectó alguna marca
+    if np.sum(mask) > 0:
+        cleaned_img = cv2.inpaint(img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+    else:
+        cleaned_img = img
+
+    # Convertir de vuelta a RGB para Pillow
+    cleaned_rgb = cv2.cvtColor(cleaned_img, cv2.COLOR_BGR2RGB)
+    return Image.fromarray(cleaned_rgb)
 
 def create_webp(input_path, output_path, quality=80, is_page=False):
-    """Convierte, remueve marcas de agua y optimiza imágenes a WebP"""
+    """Convierte, limpia marcas de agua y guarda la imagen final en WebP"""
     try:
-        # Si el archivo origen y destino son diferentes o se requiere recortar marca de agua
-        with Image.open(input_path) as img:
-            img = img.convert("RGB")
-            
-            if is_page:
-                img = remove_watermark_and_crop(img)
-            
-            # Crear directorio destino si no existe
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            img.save(output_path, "WEBP", quality=quality)
-            
+        if is_page:
+            pil_img = clean_watermark_cv2(input_path)
+            if pil_img is None:
+                pil_img = Image.open(input_path).convert("RGB")
+        else:
+            pil_img = Image.open(input_path).convert("RGB")
+
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        pil_img.save(output_path, "WEBP", quality=quality)
         return True
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
@@ -159,20 +197,18 @@ def get_cover_from_img_dir(manga_id):
     return ""
 
 def generate_catalog():
-    print("🚀 Iniciando generación automática de catálogo...")
+    print("🚀 Iniciando generación automática de catálogo con limpieza OpenCV...")
     
     auto_fix_and_organize()
 
     manga_list = []
     
-    # 1. Obtener los IDs desde las carpetas dentro de catalog/
     catalog_mangas = set()
     if os.path.exists(BASE_DIR):
         for f in os.listdir(BASE_DIR):
             if os.path.isdir(os.path.join(BASE_DIR, f)):
                 catalog_mangas.add(f.lower().replace(" ", "-"))
 
-    # 2. Obtener los IDs desde las imágenes de portada dentro de img/
     img_mangas = set()
     if os.path.exists(IMG_DIR):
         for f in os.listdir(IMG_DIR):
@@ -180,7 +216,6 @@ def generate_catalog():
                 name_without_ext = os.path.splitext(f)[0]
                 img_mangas.add(name_without_ext.lower().replace(" ", "-"))
 
-    # 3. Unir ambos para procesar todos los manhwas detectados
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
     for manga_id in all_manga_ids:
@@ -212,13 +247,11 @@ def generate_catalog():
                     target_webp_name = f"{index+1:03d}.webp"
                     target_webp_path = os.path.join(chap_path, target_webp_name)
 
-                    # Si el archivo original no es la ruta final WebP numerada
                     if os.path.abspath(img_path) != os.path.abspath(target_webp_path):
                         if create_webp(img_path, target_webp_path, is_page=True):
                             if os.path.exists(img_path):
                                 os.remove(img_path)
                     else:
-                        # Si ya es el archivo final .webp, se procesa a un temporal y se reemplaza
                         temp_path = os.path.join(chap_path, f"temp_{target_webp_name}")
                         if create_webp(img_path, temp_path, is_page=True):
                             shutil.move(temp_path, target_webp_path)
