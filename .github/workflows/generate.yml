@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  workflows: write
 
 jobs:
   build-and-update:
@@ -45,12 +46,12 @@ jobs:
           
           git fetch origin main
           
-          # Incluye el catálogo, imágenes y el caché para no resubir imágenes
+          # Aseguramos solo trackear los contenidos generados y NO los workflows
           git add catalog/ img/ mangas.json uploaded_cache.json
           
           if git diff --staged --quiet; then
             echo "No hay cambios para guardar."
           else
-            git commit -m "auto: optimización con caché, miniaturas y subida a ImgBB [skip ci]"
+            git commit -m "auto: optimización, subida a ImgBB y actualización de catálogo [skip ci]"
             git push origin main --force-with-lease
           fi
