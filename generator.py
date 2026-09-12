@@ -8,6 +8,8 @@ from PIL import Image
 import cv2
 import numpy as np
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
 # Configuración principal
 BASE_DIR = "catalog"
@@ -16,9 +18,12 @@ OUTPUT_JSON = "mangas.json"
 CACHE_FILE = "uploaded_cache.json"
 IMGBB_API_KEY = "4b0b73663ee43670cab4cec476709bb4"
 
-# Porcentaje de seguridad de recorte (ajustable)
-TOP_CROP_PERCENT = 0.03    # 3% superior
-BOTTOM_CROP_PERCENT = 0.04 # 4% inferior
+# Cantidad de cargas simultáneas a ImgBB (Subida masiva)
+MAX_WORKERS = 6
+
+# Porcentaje de seguridad de recorte para remover marcas de agua
+TOP_CROP_PERCENT = 0.03
+BOTTOM_CROP_PERCENT = 0.04
 
 # Elementos del sistema a ignorar en la raíz
 SYSTEM_ITEMS = {
@@ -27,17 +32,17 @@ SYSTEM_ITEMS = {
 }
 
 def load_cache():
-    """Carga el historial de imágenes ya subidas a ImgBB"""
+    """Carga la base de datos local de imágenes ya subidas a ImgBB"""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"⚠️ Error al leer el caché: {e}. Se creará uno nuevo.")
+        except Exception:
+            pass
     return {}
 
 def save_cache(cache):
-    """Guarda el historial de imágenes subidas"""
+    """Guarda el historial actualizado de subidas"""
     try:
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
@@ -45,7 +50,7 @@ def save_cache(cache):
         print(f"❌ Error al guardar el caché: {e}")
 
 def get_file_hash(filepath):
-    """Calcula el hash SHA256 de un archivo para validar si cambió"""
+    """Genera un identificador único (SHA-256) por cada archivo"""
     hasher = hashlib.sha256()
     with open(filepath, 'rb') as f:
         buf = f.read(65536)
@@ -55,7 +60,7 @@ def get_file_hash(filepath):
     return hasher.hexdigest()
 
 def auto_fix_and_organize():
-    """Anticipa y corrige errores de estructura de archivos/carpetas"""
+    """Auto-organiza carpetas desubicadas en la raíz"""
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR, exist_ok=True)
     if not os.path.exists(IMG_DIR):
@@ -75,23 +80,8 @@ def auto_fix_and_organize():
             else:
                 shutil.move(item, target_path)
 
-    loose_images = [
-        f for f in os.listdir(BASE_DIR) 
-        if os.path.isfile(os.path.join(BASE_DIR, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
-    ]
-    
-    if loose_images:
-        existing_mangas = [d for d in os.listdir(BASE_DIR) if os.path.isdir(os.path.join(BASE_DIR, d))]
-        target_manga = existing_mangas[0] if existing_mangas else "super-evolution"
-        target_chap_dir = os.path.join(BASE_DIR, target_manga, "cap-1")
-        
-        os.makedirs(target_chap_dir, exist_ok=True)
-        print(f"🔧 [Auto-Fix] Reubicando {len(loose_images)} imágenes sueltas a '{target_chap_dir}'")
-        for img in loose_images:
-            shutil.move(os.path.join(BASE_DIR, img), os.path.join(target_chap_dir, img))
-
 def clean_watermark_cv2(image_path):
-    """Elimina marcas de agua/logos en bordes mediante OpenCV Inpainting"""
+    """Remueve marcas de agua y logos usando OpenCV Inpainting"""
     img = cv2.imread(image_path)
     if img is None:
         return None
@@ -143,52 +133,57 @@ def create_webp(input_path, output_path, quality=80, is_page=False):
         print(f"❌ Error procesando {input_path}: {e}")
         return False
 
-def upload_to_imgbb(image_path, cache, name=None):
-    """
-    Sube una imagen local a ImgBB si no está en el caché.
-    Retorna un diccionario: {"url": ..., "thumb": ...}
-    """
-    file_hash = get_file_hash(image_path)
-    
-    # ⚡ Verificar si la imagen ya fue subida anteriormente
-    if file_hash in cache:
-        print(f"⚡ [Caché] {os.path.basename(image_path)} ya subida previamente.")
-        return cache[file_hash]
-
+def upload_single_task(task):
+    """Ejecución paralela de subida por hilo"""
+    image_path, file_hash, name = task
     url = "https://api.imgbb.com/1/upload"
-    try:
-        with open(image_path, "rb") as file:
-            payload = {"key": IMGBB_API_KEY}
-            if name:
-                payload["name"] = name
-            
-            files = {"image": file}
-            
-            response = requests.post(url, data=payload, files=files, timeout=30)
-            data = response.json()
-            
-            if data.get("success"):
-                direct_url = data["data"]["url"]
-                
-                # Obtener la URL de la miniatura (thumb / medium)
-                thumb_data = data["data"].get("thumb") or data["data"].get("medium")
-                thumb_url = thumb_data.get("url") if thumb_data else direct_url
-                
-                result = {
-                    "url": direct_url,
-                    "thumb": thumb_url
-                }
-                
-                # Guardar resultado en el caché
-                cache[file_hash] = result
-                save_cache(cache)
-                return result
-            else:
-                print(f"❌ Error de ImgBB API: {data.get('error', {}).get('message')}")
-    except Exception as e:
-        print(f"❌ Excepción al subir a ImgBB {image_path}: {e}")
+    retries = 3
+
+    for attempt in range(retries):
+        try:
+            with open(image_path, "rb") as file:
+                payload = {"key": IMGBB_API_KEY}
+                if name:
+                    payload["name"] = name
+                files = {"image": file}
+
+                response = requests.post(url, data=payload, files=files, timeout=30)
+                data = response.json()
+
+                if data.get("success"):
+                    direct_url = data["data"]["url"]
+                    thumb_data = data["data"].get("thumb") or data["data"].get("medium")
+                    thumb_url = thumb_data.get("url") if thumb_data else direct_url
+                    
+                    return file_hash, {"url": direct_url, "thumb": thumb_url}
+                else:
+                    print(f"⚠️ Reintento {attempt+1} en ImgBB para {os.path.basename(image_path)}")
+                    time.sleep(2)
+        except Exception as e:
+            print(f"⚠️ Excepción en reintento {attempt+1}: {e}")
+            time.sleep(2)
+
+    return file_hash, None
+
+def process_and_upload_batch(tasks_list, cache):
+    """Maneja el grupo de peticiones concurrentes a la API"""
+    if not tasks_list:
+        return
+
+    print(f"⚡ Subiendo {len(tasks_list)} imágenes en paralelo ({MAX_WORKERS} hilos simúltaneos)...")
     
-    return None
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [executor.submit(upload_single_task, task) for task in tasks_list]
+        
+        completed_count = 0
+        for future in as_completed(futures):
+            file_hash, result = future.result()
+            if result:
+                cache[file_hash] = result
+                completed_count += 1
+                if completed_count % 10 == 0 or completed_count == len(tasks_list):
+                    save_cache(cache)
+                    print(f"⏳ Avance: {completed_count}/{len(tasks_list)} imágenes subidas.")
 
 def extract_chapter_number(folder_name):
     match = re.search(r'(\d+(?:\.\d+)?)', folder_name)
@@ -212,53 +207,23 @@ def load_manga_metadata(manga_path, default_title):
         return metadata
 
     json_info = os.path.join(manga_path, "info.json")
-    txt_info = os.path.join(manga_path, "info.txt")
-
     if os.path.exists(json_info):
         try:
             with open(json_info, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                metadata.update(data)
+                metadata.update(json.load(f))
         except Exception:
             pass
-    elif os.path.exists(txt_info):
-        try:
-            with open(txt_info, "r", encoding="utf-8") as f:
-                metadata["synopsis"] = f.read().strip()
-        except Exception:
-            pass
-
     return metadata
 
-def get_cover_from_img_dir(manga_id, cache):
-    """Procesa y sube la portada en img/ obteniendo portada original y miniatura"""
-    if not os.path.exists(IMG_DIR):
-        return "", ""
-
-    for ext in ['.webp', '.png', '.jpg', '.jpeg']:
-        img_file = os.path.join(IMG_DIR, f"{manga_id}{ext}")
-        if os.path.exists(img_file):
-            target_img_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
-            if img_file != target_img_path:
-                if create_webp(img_file, target_img_path, is_page=False):
-                    if os.path.exists(img_file):
-                        os.remove(img_file)
-            
-            print(f"📤 Procesando portada para '{manga_id}'...")
-            uploaded = upload_to_imgbb(target_img_path, cache, name=f"cover_{manga_id}")
-            if uploaded:
-                return uploaded["url"], uploaded["thumb"]
-
-    return "", ""
-
 def generate_catalog():
-    print("🚀 Iniciando generación automática de catálogo con Caché y Miniaturas...")
+    print("🚀 Escaneando carpetas y preparando procesamiento masivo...")
     
     auto_fix_and_organize()
     cache = load_cache()
 
-    manga_list = []
-    
+    upload_tasks = []
+    file_map = {}
+
     catalog_mangas = set()
     if os.path.exists(BASE_DIR):
         for f in os.listdir(BASE_DIR):
@@ -274,30 +239,39 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
+    # 1. Escaneo, conversión a WebP y filtrado por Caché
     for manga_id in all_manga_ids:
-        manga_folder = manga_id
-        manga_path = os.path.join(BASE_DIR, manga_folder)
+        manga_path = os.path.join(BASE_DIR, manga_id)
         
-        default_title = manga_id.replace("-", " ").title()
-        meta = load_manga_metadata(manga_path, default_title)
-        chapters = []
+        # Portada
+        for ext in ['.webp', '.png', '.jpg', '.jpeg']:
+            cover_src = os.path.join(IMG_DIR, f"{manga_id}{ext}")
+            if os.path.exists(cover_src):
+                target_cover = os.path.join(IMG_DIR, f"{manga_id}.webp")
+                if cover_src != target_cover:
+                    if create_webp(cover_src, target_cover, is_page=False):
+                        if os.path.exists(cover_src):
+                            os.remove(cover_src)
+                
+                f_hash = get_file_hash(target_cover)
+                file_map[target_cover] = f_hash
+                if f_hash not in cache:
+                    upload_tasks.append((target_cover, f_hash, f"cover_{manga_id}"))
+                break
 
+        # Capítulos
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
             for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
                 chap_path = os.path.join(manga_path, chap_folder)
                 if not os.path.isdir(chap_path):
                     continue
 
-                chap_id = chap_folder.lower().replace(" ", "-")
-                chap_num = extract_chapter_number(chap_folder)
-                
                 raw_images = [
                     f for f in os.listdir(chap_path) 
                     if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
                 ]
                 images = sorted(raw_images, key=natural_sort_key)
 
-                pages = []
                 for index, img_name in enumerate(images):
                     img_path = os.path.join(chap_path, img_name)
                     target_webp_name = f"{index+1:03d}.webp"
@@ -312,11 +286,47 @@ def generate_catalog():
                         if create_webp(img_path, temp_path, is_page=True):
                             shutil.move(temp_path, target_webp_path)
 
-                    print(f"📤 Procesando {manga_id} / {chap_folder} / {target_webp_name}...")
-                    imgbb_res = upload_to_imgbb(target_webp_path, cache, name=f"{manga_id}_{chap_folder}_{index+1:03d}")
+                    f_hash = get_file_hash(target_webp_path)
+                    file_map[target_webp_path] = f_hash
+                    if f_hash not in cache:
+                        upload_tasks.append((target_webp_path, f_hash, f"{manga_id}_{chap_folder}_{index+1:03d}"))
+
+    # 2. Subida Masiva
+    if upload_tasks:
+        process_and_upload_batch(upload_tasks, cache)
+    else:
+        print("⚡ Todas las imágenes ya están registradas en el caché. Generando JSON directo...")
+
+    # 3. Construcción de mangas.json
+    manga_list = []
+    for manga_id in all_manga_ids:
+        manga_path = os.path.join(BASE_DIR, manga_id)
+        default_title = manga_id.replace("-", " ").title()
+        meta = load_manga_metadata(manga_path, default_title)
+        chapters = []
+
+        if os.path.exists(manga_path) and os.path.isdir(manga_path):
+            for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
+                chap_path = os.path.join(manga_path, chap_folder)
+                if not os.path.isdir(chap_path):
+                    continue
+
+                chap_id = chap_folder.lower().replace(" ", "-")
+                chap_num = extract_chapter_number(chap_folder)
+
+                raw_images = [
+                    f for f in os.listdir(chap_path) 
+                    if f.lower().endswith('.webp') and not f.startswith("cover")
+                ]
+                images = sorted(raw_images, key=natural_sort_key)
+
+                pages = []
+                for img_name in images:
+                    target_webp_path = os.path.join(chap_path, img_name)
+                    f_hash = file_map.get(target_webp_path) or (get_file_hash(target_webp_path) if os.path.exists(target_webp_path) else None)
                     
-                    if imgbb_res:
-                        pages.append(imgbb_res["url"])
+                    if f_hash and f_hash in cache:
+                        pages.append(cache[f_hash]["url"])
 
                 if pages:
                     chapters.append({
@@ -329,7 +339,13 @@ def generate_catalog():
 
             chapters.sort(key=lambda x: x["number"])
 
-        cover_url, cover_thumb = get_cover_from_img_dir(manga_id, cache)
+        cover_path = os.path.join(IMG_DIR, f"{manga_id}.webp")
+        cover_hash = file_map.get(cover_path) or (get_file_hash(cover_path) if os.path.exists(cover_path) else None)
+        
+        cover_url, cover_thumb = "", ""
+        if cover_hash and cover_hash in cache:
+            cover_url = cache[cover_hash]["url"]
+            cover_thumb = cache[cover_hash]["thumb"]
 
         manga_list.append({
             "id": manga_id,
@@ -349,8 +365,7 @@ def generate_catalog():
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
     print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}'")
-    print(f"⚡ Caché actualizado en '{CACHE_FILE}'")
-    print(f"📊 Total de manhwas procesados: {len(manga_list)}")
+    print(f"📊 Total de mangas en la base de datos: {len(manga_list)}")
 
 if __name__ == "__main__":
     generate_catalog()
