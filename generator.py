@@ -18,26 +18,53 @@ BASE_DIR = "catalog"
 IMG_DIR = "img"
 OUTPUT_JSON = "mangas.json"
 
+# Cantidad predeterminada de capítulos por manhwa
+TOTAL_CAPITULOS = 50
+
 SYSTEM_ITEMS = {
     ".github", ".git", "catalog", "img", "generator.py", "mangas.json", 
     "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
-def create_empty_folders(count=100):
-    """Crea las carpetas base dentro de catalog/ para acelerar la subida manual."""
+def create_empty_structure(chapter_count=TOTAL_CAPITULOS):
+    """
+    Respeta todas las carpetas de manhwas ya existentes en catalog/.
+    Asegura que cada manhwa tenga las subcarpetas cap-1 a cap-N sin sobrescribir nada.
+    """
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR, exist_ok=True)
     
-    creadas = 0
-    for i in range(1, count + 1):
-        folder_name = f"manhwa-{i}"
-        folder_path = os.path.join(BASE_DIR, folder_name)
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path, exist_ok=True)
-            creadas += 1
+    # Obtener todas las carpetas de manhwas que ya existen
+    existing_mangas = [
+        d for d in os.listdir(BASE_DIR) 
+        if os.path.isdir(os.path.join(BASE_DIR, d))
+    ]
     
+    creadas = 0
+    for manga_name in existing_mangas:
+        manga_path = os.path.join(BASE_DIR, manga_name)
+        
+        for c in range(1, chapter_count + 1):
+            chap_path = os.path.join(manga_path, f"cap-{c}")
+            
+            # Solo se crea la carpeta si NO existe previamente
+            if not os.path.exists(chap_path):
+                os.makedirs(chap_path, exist_ok=True)
+                creadas += 1
+
+            # Si la carpeta de capítulo está vacía, coloca .gitkeep para que Git la rastree
+            files_in_chap = os.listdir(chap_path)
+            gitkeep_file = os.path.join(chap_path, ".gitkeep")
+            
+            if len(files_in_chap) == 0:
+                with open(gitkeep_file, "w") as f:
+                    f.write("")
+            elif len(files_in_chap) > 1 and os.path.exists(gitkeep_file):
+                # Si ya hay imágenes subidas, elimina el .gitkeep sobrante
+                os.remove(gitkeep_file)
+
     if creadas > 0:
-        print(f"📁 Se crearon {creadas} carpetas vacías en '{BASE_DIR}/'.")
+        print(f"📁 Se añadieron {creadas} carpetas de capítulos faltantes en los manhwas existentes.")
 
 def get_media_url(file_path):
     clean_path = file_path.replace("\\", "/")
@@ -108,7 +135,11 @@ def load_manga_metadata(manga_path, default_title):
     return metadata
 
 def is_manga_valid(manga_id):
-    """Verifica que el manhwa tenga portada en img/ y al menos 2 imágenes en capítulos."""
+    """
+    Requisitos para añadir al JSON final:
+    1. Portada en img/ (formato webp, png, jpg o jpeg).
+    2. Al menos 3 imágenes reales distribuidas en sus capítulos.
+    """
     has_cover = any(
         os.path.exists(os.path.join(IMG_DIR, f"{manga_id}{ext}"))
         for ext in ['.webp', '.png', '.jpg', '.jpeg']
@@ -126,15 +157,15 @@ def is_manga_valid(manga_id):
                 ]
                 total_images += len(images)
 
-    return has_cover and (total_images >= 2)
+    return has_cover and (total_images >= 3)
 
 def generate_catalog():
     print("🚀 Iniciando proceso...")
     
-    # PASO 0: Crear estructura de 100 carpetas si no existen en local
-    create_empty_folders(100)
-    
     auto_fix_and_organize()
+    
+    # Inspecciona las carpetas existentes y genera subcarpetas/capítulos faltantes
+    create_empty_structure(TOTAL_CAPITULOS)
 
     catalog_mangas = set()
     if os.path.exists(BASE_DIR):
@@ -151,13 +182,13 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
-    # Filtrar únicamente los manhwas que cumplan la validación
+    # Filtrar únicamente los manhwas que cumplan la validación (Portada + >= 3 imágenes)
     valid_manga_ids = []
     for manga_id in all_manga_ids:
         if is_manga_valid(manga_id):
             valid_manga_ids.append(manga_id)
         else:
-            print(f"⏳ [Omitido] '{manga_id}' no cumple los requisitos (Requiere portada en '{IMG_DIR}/' y mínimo 2 imágenes).")
+            print(f"⏳ [Omitido en JSON] '{manga_id}' no cumple requisitos aún (Requiere portada en '{IMG_DIR}/' + mínimo 3 imágenes).")
 
     # 1. Optimización de portadas válidas
     for manga_id in valid_manga_ids:
@@ -278,7 +309,7 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado en '{OUTPUT_JSON}' ({len(manga_list)} mangas válidos incluidos).")
+    print(f"\n✅ Catálogo generado en '{OUTPUT_JSON}' ({len(manga_list)} mangas procesados).")
 
 if __name__ == "__main__":
     generate_catalog()
