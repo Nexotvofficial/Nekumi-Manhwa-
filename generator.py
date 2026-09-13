@@ -23,6 +23,22 @@ SYSTEM_ITEMS = {
     "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
+def create_empty_folders(count=100):
+    """Crea las carpetas base dentro de catalog/ para acelerar la subida manual."""
+    if not os.path.exists(BASE_DIR):
+        os.makedirs(BASE_DIR, exist_ok=True)
+    
+    creadas = 0
+    for i in range(1, count + 1):
+        folder_name = f"manhwa-{i}"
+        folder_path = os.path.join(BASE_DIR, folder_name)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path, exist_ok=True)
+            creadas += 1
+    
+    if creadas > 0:
+        print(f"📁 Se crearon {creadas} carpetas vacías en '{BASE_DIR}/'.")
+
 def get_media_url(file_path):
     clean_path = file_path.replace("\\", "/")
     clean_path = urllib.parse.quote(clean_path, safe='/')
@@ -92,18 +108,12 @@ def load_manga_metadata(manga_path, default_title):
     return metadata
 
 def is_manga_valid(manga_id):
-    """
-    Verifica que el manhwa tenga:
-    1. Portada presente en la carpeta img/ (.webp, .png, .jpg, .jpeg)
-    2. Al menos 2 archivos de imagen dentro de sus capítulos.
-    """
-    # 1. Comprobar portada en IMG_DIR
+    """Verifica que el manhwa tenga portada en img/ y al menos 2 imágenes en capítulos."""
     has_cover = any(
         os.path.exists(os.path.join(IMG_DIR, f"{manga_id}{ext}"))
         for ext in ['.webp', '.png', '.jpg', '.jpeg']
     )
 
-    # 2. Contar imágenes totales en los capítulos dentro de BASE_DIR
     total_images = 0
     manga_path = os.path.join(BASE_DIR, manga_id)
     if os.path.exists(manga_path) and os.path.isdir(manga_path):
@@ -119,7 +129,11 @@ def is_manga_valid(manga_id):
     return has_cover and (total_images >= 2)
 
 def generate_catalog():
-    print("🚀 Procesando imágenes y generando URLs de GitHub/CDN...")
+    print("🚀 Iniciando proceso...")
+    
+    # PASO 0: Crear estructura de 100 carpetas si no existen en local
+    create_empty_folders(100)
+    
     auto_fix_and_organize()
 
     catalog_mangas = set()
@@ -137,15 +151,15 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
-    # Filtrar únicamente los manhwas que cumplan la validación (Portada + >= 2 imágenes)
+    # Filtrar únicamente los manhwas que cumplan la validación
     valid_manga_ids = []
     for manga_id in all_manga_ids:
         if is_manga_valid(manga_id):
             valid_manga_ids.append(manga_id)
         else:
-            print(f"⏳ [Omitido] '{manga_id}' incompleto (requiere portada en '{IMG_DIR}/' y mínimo 2 imágenes).")
+            print(f"⏳ [Omitido] '{manga_id}' no cumple los requisitos (Requiere portada en '{IMG_DIR}/' y mínimo 2 imágenes).")
 
-    # 1. Optimización y conversión de portadas válidas
+    # 1. Optimización de portadas válidas
     for manga_id in valid_manga_ids:
         for ext in ['.webp', '.png', '.jpg', '.jpeg']:
             cover_src = os.path.join(IMG_DIR, f"{manga_id}{ext}")
@@ -161,7 +175,7 @@ def generate_catalog():
                                 os.remove(cover_src)
                 break
 
-    # 2. Optimización segura de imágenes (Previene que se borren páginas)
+    # 2. Optimización segura de imágenes
     for manga_id in valid_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
@@ -176,7 +190,6 @@ def generate_catalog():
                 ]
                 images = sorted(raw_images, key=natural_sort_key)
                 
-                # PASO A: Renombrar a nombres temporales para evitar pisar archivos existentes
                 safe_paths = []
                 for index, img_name in enumerate(images):
                     img_path = os.path.join(chap_path, img_name)
@@ -198,7 +211,6 @@ def generate_catalog():
                             shutil.move(img_path, fallback_path)
                             safe_paths.append(fallback_path)
 
-                # PASO B: Renombrar de temporales al formato final secuencial
                 for index, temp_path in enumerate(safe_paths):
                     _, ext = os.path.splitext(temp_path)
                     final_name = f"{index+1:03d}{ext}"
@@ -266,7 +278,7 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' ({len(manga_list)} de {len(all_manga_ids)} mangas procesados).")
+    print(f"\n✅ Catálogo generado en '{OUTPUT_JSON}' ({len(manga_list)} mangas válidos incluidos).")
 
 if __name__ == "__main__":
     generate_catalog()
