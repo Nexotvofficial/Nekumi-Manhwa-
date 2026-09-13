@@ -1,5 +1,42 @@
 [
   {
+    "id": "Aikatsu",
+    "title": "Aikatsu",
+    "category": "manga",
+    "cover": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
+    "cover_thumb": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
+    "status": "En emisión",
+    "synopsis": "Sinopsis pendiente de actualización.",
+    "genres": [
+      "Acción",
+      "Fantasía"
+    ],
+    "total_chapters": 1,
+    "last_updated": "2026-09-13 04:55:15 UTC",
+    "chapters": [
+      {
+        "id": "cap-1",
+        "number": 1,
+        "title": "Capítulo 1",
+        "pages_count": 12,
+        "pages": [
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/012.webp"
+        ]
+      }
+    ]
+  },
+  {
     "id": "crazy-demon",
     "title": "Crazy Demon",
     "category": "manhwa",
@@ -12,7 +49,7 @@
       "Fantasía"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-13 04:54:42 UTC",
+    "last_updated": "2026-09-13 04:55:15 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -137,7 +174,7 @@
       "Fantasía"
     ],
     "total_chapters": 16,
-    "last_updated": "2026-09-13 04:54:42 UTC",
+    "last_updated": "2026-09-13 04:55:15 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -868,7 +905,7 @@
       "Fantasía"
     ],
     "total_chapters": 1,
-    "last_updated": "2026-09-13 04:54:42 UTC",
+    "last_updated": "2026-09-13 04:55:15 UTC",
     "chapters": [
       {
         "id": "cap-1",
