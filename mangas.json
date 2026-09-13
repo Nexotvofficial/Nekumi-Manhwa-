@@ -6,7 +6,7 @@
     "cover": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
     "cover_thumb": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
     "status": "En emisión",
-    "featured": false,
+    "featured": true,
     "rating": 0.0,
     "synopsis": "Sinopsis pendiente de actualización.",
     "genres": [
@@ -14,7 +14,7 @@
       "Fantasía"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-13 05:20:54 UTC",
+    "last_updated": "2026-09-13 05:22:45 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -71,7 +71,7 @@
       "Fantasía"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-13 05:20:54 UTC",
+    "last_updated": "2026-09-13 05:22:45 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -198,7 +198,7 @@
       "Fantasía"
     ],
     "total_chapters": 16,
-    "last_updated": "2026-09-13 05:20:54 UTC",
+    "last_updated": "2026-09-13 05:22:45 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -931,7 +931,7 @@
       "Fantasía"
     ],
     "total_chapters": 1,
-    "last_updated": "2026-09-13 05:20:54 UTC",
+    "last_updated": "2026-09-13 05:22:45 UTC",
     "chapters": [
       {
         "id": "cap-1",
