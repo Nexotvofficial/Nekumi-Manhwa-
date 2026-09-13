@@ -72,24 +72,42 @@ def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 def auto_setup_manga_folder(manga_path, manga_id):
-    """Crea info.json automático y carpetas cap-1 a cap-50 con .gitkeep."""
+    """Crea o actualiza info.json automático con 'featured' y gestiona carpetas cap-1 a cap-50."""
     default_title = manga_id.replace("-", " ").title()
     json_info_path = os.path.join(manga_path, "info.json")
 
-    # 1. Crear info.json si no existe
+    default_meta = {
+        "title": default_title,
+        "category": "manhwa",    # Opciones: manhwa, manga, manhua, fanmade
+        "status": "En emisión",  # Opciones: En emisión, Finalizado, Pausado
+        "featured": False,       # True solo para mostrar en la sección Destacados/Top
+        "rating": 0.0,           # Puntuación o ranking opcional
+        "synopsis": "Sinopsis pendiente de actualización.",
+        "genres": ["Acción", "Fantasía"]
+    }
+
+    # 1. Crear info.json si no existe o añadir claves faltantes como "featured"
     if not os.path.exists(json_info_path):
-        default_meta = {
-            "title": default_title,
-            "category": "manhwa",    # Opciones: manhwa, manga, manhua, fanmade
-            "status": "En emisión",  # Opciones: En emisión, Finalizado, Pausado
-            "featured": False,       # True solo para mostrar en la sección Destacados/Top
-            "rating": 0.0,           # Puntuación o ranking opcional
-            "synopsis": "Sinopsis pendiente de actualización.",
-            "genres": ["Acción", "Fantasía"]
-        }
         with open(json_info_path, "w", encoding="utf-8") as f:
             json.dump(default_meta, f, ensure_ascii=False, indent=2)
         print(f"📝 Plantilla 'info.json' generada automáticamente en '{manga_id}'.")
+    else:
+        try:
+            with open(json_info_path, "r", encoding="utf-8") as f:
+                current_data = json.load(f)
+            
+            updated = False
+            for key, val in default_meta.items():
+                if key not in current_data:
+                    current_data[key] = val
+                    updated = True
+            
+            if updated:
+                with open(json_info_path, "w", encoding="utf-8") as f:
+                    json.dump(current_data, f, ensure_ascii=False, indent=2)
+                print(f"🔄 'info.json' en '{manga_id}' actualizado con campos faltantes (incluyendo 'featured').")
+        except Exception as e:
+            print(f"⚠️ Error actualizando info.json en {manga_id}: {e}")
 
     # 2. Crear carpetas cap-1 a cap-N con .gitkeep
     for c in range(1, TOTAL_CAPITULOS + 1):
@@ -193,7 +211,7 @@ def generate_catalog():
     for manga_id in manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         
-        # Genera automáticamente la estructura interna de la obra
+        # Genera/actualiza automáticamente la estructura interna y el info.json de la obra
         auto_setup_manga_folder(manga_path, manga_id)
         
         default_title = manga_id.replace("-", " ").title()
