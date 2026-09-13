@@ -11,8 +11,8 @@
       "Acción",
       "Fantasía"
     ],
-    "total_chapters": 1,
-    "last_updated": "2026-09-13 04:55:15 UTC",
+    "total_chapters": 2,
+    "last_updated": "2026-09-13 05:01:59 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -33,6 +33,24 @@
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/011.webp",
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/012.webp"
         ]
+      },
+      {
+        "id": "cap-2",
+        "number": 2,
+        "title": "Capítulo 2",
+        "pages_count": 10,
+        "pages": [
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/010.webp"
+        ]
       }
     ]
   },
@@ -49,7 +67,7 @@
       "Fantasía"
     ],
     "total_chapters": 2,
-    "last_updated": "2026-09-13 04:55:15 UTC",
+    "last_updated": "2026-09-13 05:01:59 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -174,7 +192,7 @@
       "Fantasía"
     ],
     "total_chapters": 16,
-    "last_updated": "2026-09-13 04:55:15 UTC",
+    "last_updated": "2026-09-13 05:01:59 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -905,7 +923,7 @@
       "Fantasía"
     ],
     "total_chapters": 1,
-    "last_updated": "2026-09-13 04:55:15 UTC",
+    "last_updated": "2026-09-13 05:01:59 UTC",
     "chapters": [
       {
         "id": "cap-1",
