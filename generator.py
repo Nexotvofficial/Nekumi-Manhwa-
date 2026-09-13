@@ -82,6 +82,8 @@ def auto_setup_manga_folder(manga_path, manga_id):
             "title": default_title,
             "category": "manhwa",    # Opciones: manhwa, manga, manhua, fanmade
             "status": "En emisión",  # Opciones: En emisión, Finalizado, Pausado
+            "featured": False,       # True solo para mostrar en la sección Destacados/Top
+            "rating": 0.0,           # Puntuación o ranking opcional
             "synopsis": "Sinopsis pendiente de actualización.",
             "genres": ["Acción", "Fantasía"]
         }
@@ -114,7 +116,9 @@ def load_manga_metadata(manga_path, default_title):
         "synopsis": "Sinopsis no disponible.",
         "status": "En emisión",
         "category": "manhwa",
-        "genres": ["Acción"]
+        "genres": ["Acción"],
+        "featured": False,
+        "rating": 0.0
     }
     
     json_info = os.path.join(manga_path, "info.json")
@@ -259,13 +263,15 @@ def generate_catalog():
                 "cover": cover_url,
                 "cover_thumb": cover_url,
                 "status": meta.get("status", "En emisión"),
+                "featured": meta.get("featured", False),
+                "rating": meta.get("rating", 0.0),
                 "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
                 "genres": meta.get("genres", ["Acción"]),
                 "total_chapters": len(chapters),
                 "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
                 "chapters": chapters
             })
-            print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] '{manga_id}' sincronizado con {len(chapters)} caps activos.")
+            print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] (Featured: {meta.get('featured')}) '{manga_id}' sincronizado con {len(chapters)} caps activos.")
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
