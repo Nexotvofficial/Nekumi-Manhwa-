@@ -71,36 +71,70 @@ def extract_chapter_number(folder_name):
 def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-def ensure_structure_and_gitkeep():
-    """Garantiza la existencia de carpetas cap-1 a cap-50 e ignora .gitkeep si hay imágenes."""
-    if not os.path.exists(BASE_DIR):
-        return
+def auto_setup_manga_folder(manga_path, manga_id):
+    """Crea info.json automático y carpetas cap-1 a cap-50 con .gitkeep."""
+    default_title = manga_id.replace("-", " ").title()
+    json_info_path = os.path.join(manga_path, "info.json")
 
-    for manga_name in os.listdir(BASE_DIR):
-        manga_path = os.path.join(BASE_DIR, manga_name)
-        if not os.path.isdir(manga_path):
-            continue
+    # 1. Crear info.json si no existe
+    if not os.path.exists(json_info_path):
+        default_meta = {
+            "title": default_title,
+            "category": "manhwa",    # Opciones: manhwa, manga, manhua, fanmade
+            "status": "En emisión",  # Opciones: En emisión, Finalizado, Pausado
+            "synopsis": "Sinopsis pendiente de actualización.",
+            "genres": ["Acción", "Fantasía"]
+        }
+        with open(json_info_path, "w", encoding="utf-8") as f:
+            json.dump(default_meta, f, ensure_ascii=False, indent=2)
+        print(f"📝 Plantilla 'info.json' generada automáticamente en '{manga_id}'.")
 
-        for c in range(1, TOTAL_CAPITULOS + 1):
-            chap_path = os.path.join(manga_path, f"cap-{c}")
-            os.makedirs(chap_path, exist_ok=True)
+    # 2. Crear carpetas cap-1 a cap-N con .gitkeep
+    for c in range(1, TOTAL_CAPITULOS + 1):
+        chap_path = os.path.join(manga_path, f"cap-{c}")
+        os.makedirs(chap_path, exist_ok=True)
 
-            real_images = [
-                f for f in os.listdir(chap_path)
-                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover") and f != ".gitkeep"
-            ]
-            gitkeep_file = os.path.join(chap_path, ".gitkeep")
+        real_images = [
+            f for f in os.listdir(chap_path)
+            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover") and f != ".gitkeep"
+        ]
+        gitkeep_file = os.path.join(chap_path, ".gitkeep")
 
-            if len(real_images) == 0:
-                if not os.path.exists(gitkeep_file):
-                    with open(gitkeep_file, "w") as f:
-                        f.write("")
-            else:
-                if os.path.exists(gitkeep_file):
-                    os.remove(gitkeep_file)
+        if len(real_images) == 0:
+            if not os.path.exists(gitkeep_file):
+                with open(gitkeep_file, "w") as f:
+                    f.write("")
+        else:
+            if os.path.exists(gitkeep_file):
+                os.remove(gitkeep_file)
+
+def load_manga_metadata(manga_path, default_title):
+    metadata = {
+        "title": default_title,
+        "synopsis": "Sinopsis no disponible.",
+        "status": "En emisión",
+        "category": "manhwa",
+        "genres": ["Acción"]
+    }
+    
+    json_info = os.path.join(manga_path, "info.json")
+    if os.path.exists(json_info):
+        try:
+            with open(json_info, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                metadata.update(data)
+        except Exception as e:
+            print(f"⚠️ Error leyendo info.json en {manga_path}: {e}")
+            
+    if "category" in metadata:
+        metadata["category"] = str(metadata["category"]).lower().strip().replace(" ", "-")
+    if "status" in metadata:
+        metadata["status"] = str(metadata["status"]).capitalize().strip()
+        
+    return metadata
 
 def resolve_cover(manga_id):
-    """Busca o genera la portada automáticamente para evitar la omisión del manhwa."""
+    """Detecta portada en img/ o la toma de la primera página del capítulo 1."""
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         c_path = os.path.join(IMG_DIR, f"{manga_id}{ext}")
         if os.path.exists(c_path):
@@ -139,24 +173,29 @@ def resolve_cover(manga_id):
     return ""
 
 def generate_catalog():
-    print("🚀 Iniciando optimización y generación del catálogo...")
+    print("🚀 Iniciando automatización completa...")
     auto_fix_and_organize()
-    ensure_structure_and_gitkeep()
 
-    manga_list = []
     if not os.path.exists(BASE_DIR):
-        print("⚠️ No existe la carpeta catalog/")
-        return
+        os.makedirs(BASE_DIR, exist_ok=True)
 
     manga_ids = sorted([
         d for d in os.listdir(BASE_DIR) 
         if os.path.isdir(os.path.join(BASE_DIR, d))
     ], key=natural_sort_key)
 
+    manga_list = []
+
     for manga_id in manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
-        chapters = []
+        
+        # Genera automáticamente la estructura interna de la obra
+        auto_setup_manga_folder(manga_path, manga_id)
+        
+        default_title = manga_id.replace("-", " ").title()
+        meta = load_manga_metadata(manga_path, default_title)
 
+        chapters = []
         for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
             chap_path = os.path.join(manga_path, chap_folder)
             if not os.path.isdir(chap_path):
@@ -211,28 +250,27 @@ def generate_catalog():
 
         chapters.sort(key=lambda x: x["number"])
         cover_url = resolve_cover(manga_id)
-        default_title = manga_id.replace("-", " ").title()
 
         if chapters or cover_url:
             manga_list.append({
                 "id": manga_id,
-                "title": default_title,
-                "category": "manhwa",
+                "title": meta.get("title", default_title),
+                "category": meta.get("category", "manhwa"),
                 "cover": cover_url,
                 "cover_thumb": cover_url,
-                "status": "En emisión",
-                "synopsis": "Sinopsis no disponible.",
-                "genres": ["Manhwa", "Acción"],
+                "status": meta.get("status", "En emisión"),
+                "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
+                "genres": meta.get("genres", ["Acción"]),
                 "total_chapters": len(chapters),
                 "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
                 "chapters": chapters
             })
-            print(f"✅ [Procesado] '{manga_id}' con {len(chapters)} capítulos activos.")
+            print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] '{manga_id}' sincronizado con {len(chapters)} caps activos.")
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n🎉 ¡Catálogo generado exitosamente! '{OUTPUT_JSON}' incluye {len(manga_list)} manhwas.")
+    print(f"\n🎉 Sincronización finalizada. '{OUTPUT_JSON}' generado con {len(manga_list)} títulos.")
 
 if __name__ == "__main__":
     generate_catalog()
