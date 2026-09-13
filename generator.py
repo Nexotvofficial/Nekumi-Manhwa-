@@ -91,6 +91,33 @@ def load_manga_metadata(manga_path, default_title):
             pass
     return metadata
 
+def is_manga_valid(manga_id):
+    """
+    Verifica que el manhwa tenga:
+    1. Portada presente en la carpeta img/ (.webp, .png, .jpg, .jpeg)
+    2. Al menos 2 archivos de imagen dentro de sus capítulos.
+    """
+    # 1. Comprobar portada en IMG_DIR
+    has_cover = any(
+        os.path.exists(os.path.join(IMG_DIR, f"{manga_id}{ext}"))
+        for ext in ['.webp', '.png', '.jpg', '.jpeg']
+    )
+
+    # 2. Contar imágenes totales en los capítulos dentro de BASE_DIR
+    total_images = 0
+    manga_path = os.path.join(BASE_DIR, manga_id)
+    if os.path.exists(manga_path) and os.path.isdir(manga_path):
+        for chap_folder in os.listdir(manga_path):
+            chap_path = os.path.join(manga_path, chap_folder)
+            if os.path.isdir(chap_path):
+                images = [
+                    f for f in os.listdir(chap_path)
+                    if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
+                ]
+                total_images += len(images)
+
+    return has_cover and (total_images >= 2)
+
 def generate_catalog():
     print("🚀 Procesando imágenes y generando URLs de GitHub/CDN...")
     auto_fix_and_organize()
@@ -110,8 +137,16 @@ def generate_catalog():
 
     all_manga_ids = sorted(list(catalog_mangas.union(img_mangas)))
 
-    # 1. Optimización y conversión de portadas
+    # Filtrar únicamente los manhwas que cumplan la validación (Portada + >= 2 imágenes)
+    valid_manga_ids = []
     for manga_id in all_manga_ids:
+        if is_manga_valid(manga_id):
+            valid_manga_ids.append(manga_id)
+        else:
+            print(f"⏳ [Omitido] '{manga_id}' incompleto (requiere portada en '{IMG_DIR}/' y mínimo 2 imágenes).")
+
+    # 1. Optimización y conversión de portadas válidas
+    for manga_id in valid_manga_ids:
         for ext in ['.webp', '.png', '.jpg', '.jpeg']:
             cover_src = os.path.join(IMG_DIR, f"{manga_id}{ext}")
             if os.path.exists(cover_src):
@@ -127,7 +162,7 @@ def generate_catalog():
                 break
 
     # 2. Optimización segura de imágenes (Previene que se borren páginas)
-    for manga_id in all_manga_ids:
+    for manga_id in valid_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         if os.path.exists(manga_path) and os.path.isdir(manga_path):
             for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
@@ -158,7 +193,6 @@ def generate_catalog():
                                 os.remove(img_path)
                             safe_paths.append(temp_path)
                         else:
-                            # Si falla, mantenemos el archivo original con nombre seguro
                             _, ext = os.path.splitext(img_name)
                             fallback_path = os.path.join(chap_path, f"temp_page_{index:04d}{ext}")
                             shutil.move(img_path, fallback_path)
@@ -174,7 +208,7 @@ def generate_catalog():
 
     # 3. Construcción del archivo mangas.json
     manga_list = []
-    for manga_id in all_manga_ids:
+    for manga_id in valid_manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         default_title = manga_id.replace("-", " ").title()
         meta = load_manga_metadata(manga_path, default_title)
@@ -189,7 +223,6 @@ def generate_catalog():
                 chap_id = chap_folder.lower().replace(" ", "-")
                 chap_num = extract_chapter_number(chap_folder)
 
-                # Ahora lee TODOS los formatos de imagen, no solo webp
                 raw_images = [
                     f for f in os.listdir(chap_path) 
                     if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover")
@@ -233,7 +266,7 @@ def generate_catalog():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' usando enlaces de GitHub/jsDelivr.")
+    print(f"\n✅ Catálogo generado con éxito en '{OUTPUT_JSON}' ({len(manga_list)} de {len(all_manga_ids)} mangas procesados).")
 
 if __name__ == "__main__":
     generate_catalog()
