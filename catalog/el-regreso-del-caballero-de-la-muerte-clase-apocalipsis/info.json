@@ -6,5 +6,7 @@
   "genres": [
     "Acción",
     "Fantasía"
-  ]
+  ],
+  "featured": false,
+  "rating": 0.0
 }
