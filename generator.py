@@ -6,7 +6,7 @@ import urllib.parse
 from datetime import datetime
 from PIL import Image
 
-# Configuración del Repositorio de GitHub
+# Configuración del Repositorio de GitHub Predeterminado
 GITHUB_USER = "Nexotvofficial"
 GITHUB_REPO = "Nekumi-Manhwa-"
 BRANCH = "main"
@@ -24,12 +24,13 @@ SYSTEM_ITEMS = {
     "uploaded_cache.json", "README.md", "app", "build", ".gitignore", ".workflows"
 }
 
-def get_media_url(file_path):
+def get_media_url(file_path, repo_name=GITHUB_REPO):
+    """Genera la URL del CDN soportando múltiples repositorios dinámicamente."""
     clean_path = file_path.replace("\\", "/")
     clean_path = urllib.parse.quote(clean_path, safe='/')
     if USE_JSDELIVR:
-        return f"https://cdn.jsdelivr.net/gh/{GITHUB_USER}/{GITHUB_REPO}@{BRANCH}/{clean_path}"
-    return f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{BRANCH}/{clean_path}"
+        return f"https://cdn.jsdelivr.net/gh/{GITHUB_USER}/{repo_name}@{BRANCH}/{clean_path}"
+    return f"https://raw.githubusercontent.com/{GITHUB_USER}/{repo_name}/{BRANCH}/{clean_path}"
 
 def auto_fix_and_organize():
     if not os.path.exists(BASE_DIR):
@@ -72,7 +73,7 @@ def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 def auto_setup_manga_folder(manga_path, manga_id):
-    """Crea o actualiza info.json automático con 'featured' y gestiona carpetas cap-1 a cap-50."""
+    """Crea o actualiza info.json automático con 'featured' y 'repo'."""
     default_title = manga_id.replace("-", " ").title()
     json_info_path = os.path.join(manga_path, "info.json")
 
@@ -83,10 +84,11 @@ def auto_setup_manga_folder(manga_path, manga_id):
         "featured": False,       # True solo para mostrar en la sección Destacados/Top
         "rating": 0.0,           # Puntuación o ranking opcional
         "synopsis": "Sinopsis pendiente de actualización.",
-        "genres": ["Acción", "Fantasía"]
+        "genres": ["Acción", "Fantasía"],
+        "repo": GITHUB_REPO      # Repositorio predeterminado (puedes cambiarlo a Nekumi-Catalog-02, etc.)
     }
 
-    # 1. Crear info.json si no existe o añadir claves faltantes como "featured"
+    # 1. Crear info.json si no existe o añadir claves faltantes
     if not os.path.exists(json_info_path):
         with open(json_info_path, "w", encoding="utf-8") as f:
             json.dump(default_meta, f, ensure_ascii=False, indent=2)
@@ -105,7 +107,7 @@ def auto_setup_manga_folder(manga_path, manga_id):
             if updated:
                 with open(json_info_path, "w", encoding="utf-8") as f:
                     json.dump(current_data, f, ensure_ascii=False, indent=2)
-                print(f"🔄 'info.json' en '{manga_id}' actualizado con campos faltantes (incluyendo 'featured').")
+                print(f"🔄 'info.json' en '{manga_id}' actualizado con campos faltantes.")
         except Exception as e:
             print(f"⚠️ Error actualizando info.json en {manga_id}: {e}")
 
@@ -136,7 +138,8 @@ def load_manga_metadata(manga_path, default_title):
         "category": "manhwa",
         "genres": ["Acción"],
         "featured": False,
-        "rating": 0.0
+        "rating": 0.0,
+        "repo": GITHUB_REPO
     }
     
     json_info = os.path.join(manga_path, "info.json")
@@ -155,7 +158,7 @@ def load_manga_metadata(manga_path, default_title):
         
     return metadata
 
-def resolve_cover(manga_id):
+def resolve_cover(manga_id, repo_name=GITHUB_REPO):
     """Detecta portada en img/ o la toma de la primera página del capítulo 1."""
     for ext in ['.webp', '.png', '.jpg', '.jpeg']:
         c_path = os.path.join(IMG_DIR, f"{manga_id}{ext}")
@@ -167,7 +170,7 @@ def resolve_cover(manga_id):
                 else:
                     if create_webp(c_path, target):
                         os.remove(c_path)
-            return get_media_url(target)
+            return get_media_url(target, repo_name=repo_name)
 
     manga_path = os.path.join(BASE_DIR, manga_id)
     if os.path.exists(manga_path):
@@ -176,7 +179,7 @@ def resolve_cover(manga_id):
             if os.path.exists(c_path):
                 target = os.path.join(IMG_DIR, f"{manga_id}.webp")
                 create_webp(c_path, target)
-                return get_media_url(target)
+                return get_media_url(target, repo_name=repo_name)
 
         for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
             chap_path = os.path.join(manga_path, chap_folder)
@@ -190,12 +193,12 @@ def resolve_cover(manga_id):
                     first_img = os.path.join(chap_path, imgs[0])
                     target = os.path.join(IMG_DIR, f"{manga_id}.webp")
                     create_webp(first_img, target)
-                    return get_media_url(target)
+                    return get_media_url(target, repo_name=repo_name)
 
     return ""
 
 def generate_catalog():
-    print("🚀 Iniciando automatización completa...")
+    print("🚀 Iniciando automatización completa con soporte Multi-Repo...")
     auto_fix_and_organize()
 
     if not os.path.exists(BASE_DIR):
@@ -211,11 +214,13 @@ def generate_catalog():
     for manga_id in manga_ids:
         manga_path = os.path.join(BASE_DIR, manga_id)
         
-        # Genera/actualiza automáticamente la estructura interna y el info.json de la obra
         auto_setup_manga_folder(manga_path, manga_id)
         
         default_title = manga_id.replace("-", " ").title()
         meta = load_manga_metadata(manga_path, default_title)
+        
+        # Lee qué repositorio usa esta obra (si no se especifica, usa Nekumi-Manhwa-)
+        manga_repo = meta.get("repo", GITHUB_REPO)
 
         chapters = []
         for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
@@ -259,7 +264,9 @@ def generate_catalog():
                 final_path = os.path.join(chap_path, final_name)
                 if os.path.abspath(temp_path) != os.path.abspath(final_path):
                     shutil.move(temp_path, final_path)
-                pages.append(get_media_url(final_path))
+                
+                # Genera la URL apuntando al repositorio específico de la obra
+                pages.append(get_media_url(final_path, repo_name=manga_repo))
 
             chap_num = extract_chapter_number(chap_folder)
             chapters.append({
@@ -271,7 +278,7 @@ def generate_catalog():
             })
 
         chapters.sort(key=lambda x: x["number"])
-        cover_url = resolve_cover(manga_id)
+        cover_url = resolve_cover(manga_id, repo_name=manga_repo)
 
         if chapters or cover_url:
             manga_list.append({
@@ -285,11 +292,12 @@ def generate_catalog():
                 "rating": meta.get("rating", 0.0),
                 "synopsis": meta.get("synopsis", "Sinopsis no disponible."),
                 "genres": meta.get("genres", ["Acción"]),
+                "repo": manga_repo,
                 "total_chapters": len(chapters),
                 "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
                 "chapters": chapters
             })
-            print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] (Featured: {meta.get('featured')}) '{manga_id}' sincronizado con {len(chapters)} caps activos.")
+            print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] (Repo: {manga_repo}) '{manga_id}' sincronizado con {len(chapters)} caps activos.")
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
