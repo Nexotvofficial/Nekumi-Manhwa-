@@ -1,4 +1,4 @@
-name: Generate Manga Catalog
+name: Generate Catalog and Deploy Pages
 
 on:
   push:
@@ -10,18 +10,21 @@ on:
       - 'README.md'
   workflow_dispatch:
 
-# 🚀 Evitar colisiones: Cancela ejecuciones en curso si haces varios push seguidos
 concurrency:
-  group: "manga-catalog-${{ github.ref }}"
+  group: "pages-deploy-${{ github.ref }}"
   cancel-in-progress: true
 
 permissions:
   contents: write
-  actions: write
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-update:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: 📥 Checkout Repository
@@ -57,13 +60,24 @@ jobs:
           else
             echo "🚀 Cambios detectados. Creando commit..."
             git commit -m "auto: optimización webp y actualización de catálogo 📚 [skip ci]"
-            
             git pull --rebase origin main
             git push origin main
           fi
 
-      - name: ⚡ Purgar Caché CDN (Tiempo Real)
+      - name: ⚡ Purgar Caché CDN
         run: |
-          echo "🧹 Forzando la purga inmediata de la caché en los servidores de jsDelivr..."
+          echo "🧹 Forzando la purga inmediata de la caché en jsDelivr..."
           curl -s "https://purge.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/mangas.json"
-          echo "✅ Caché eliminada. Los cambios ya están disponibles en tiempo real globalmente."
+          echo "✅ Caché eliminada."
+
+      - name: 🔧 Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📦 Upload Artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
