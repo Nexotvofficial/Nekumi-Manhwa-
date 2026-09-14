@@ -207,7 +207,7 @@
         ]
       }
     },
-    "signature": "bfcdcaf14abf0d6697436cb9e7c6abc8",
+    "signature": "6929b1136c0aa6b7b1c00960a78a8557",
     "entry": {
       "id": "Aikatsu",
       "title": "Aikatsu",
@@ -224,7 +224,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 11,
-      "last_updated": "2026-09-14 22:32:53 UTC",
+      "last_updated": "2026-09-14 22:34:28 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -545,7 +545,7 @@
         ]
       }
     },
-    "signature": "e6b59cd3a3b4255b88c9ebf43bd1e48b",
+    "signature": "a8182a38a78ed02e6bd493a94cac2804",
     "entry": {
       "id": "crazy-demon",
       "title": "Crazy Demon",
@@ -562,7 +562,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 2,
-      "last_updated": "2026-09-14 22:32:53 UTC",
+      "last_updated": "2026-09-14 22:34:28 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -1604,7 +1604,7 @@
         ]
       }
     },
-    "signature": "1d31aafb11ae1a9a4bd12ce00339a6e6",
+    "signature": "a5e670d381f8c5b00780c315972af8c7",
     "entry": {
       "id": "el-regreso-del-caballero-de-la-muerte-clase-apocalipsis",
       "title": "El Regreso Del Caballero De La Muerte Clase Apocalipsis",
@@ -1621,7 +1621,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 21,
-      "last_updated": "2026-09-14 22:32:53 UTC",
+      "last_updated": "2026-09-14 22:34:28 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -2815,9 +2815,35 @@
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/019.webp",
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/020.webp"
         ]
+      },
+      "cap-9": {
+        "id": "cap-9",
+        "number": 9,
+        "title": "Capítulo 9",
+        "pages_count": 18,
+        "pages": [
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/012.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/013.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/014.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/015.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/016.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/017.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/018.webp"
+        ]
       }
     },
-    "signature": "bff8e7a1a98deda7c84868c6ec84fae1",
+    "signature": "361cc8e6e15b6b1487f64281fee4323d",
     "entry": {
       "id": "reversal",
       "title": "Reversal",
@@ -2833,8 +2859,8 @@
         "Fantasía"
       ],
       "repo": "Nekumi-Catalog-02",
-      "total_chapters": 8,
-      "last_updated": "2026-09-14 22:32:53 UTC",
+      "total_chapters": 9,
+      "last_updated": "2026-09-14 22:34:32 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -3097,6 +3123,32 @@
             "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/019.webp",
             "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/020.webp"
           ]
+        },
+        {
+          "id": "cap-9",
+          "number": 9,
+          "title": "Capítulo 9",
+          "pages_count": 18,
+          "pages": [
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/001.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/002.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/003.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/004.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/005.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/006.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/007.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/008.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/009.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/010.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/011.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/012.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/013.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/014.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/015.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/016.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/017.webp",
+            "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-9/018.webp"
+          ]
         }
       ]
     }
@@ -3170,7 +3222,7 @@
         ]
       }
     },
-    "signature": "efcb7e5e758596cbdb54dcf441da8047",
+    "signature": "5a0c432e4225d198fa148e5523b54f0d",
     "entry": {
       "id": "solo-leveling-ragnarok",
       "title": "Solo Leveling Ragnarok",
@@ -3187,7 +3239,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 1,
-      "last_updated": "2026-09-14 22:32:53 UTC",
+      "last_updated": "2026-09-14 22:34:32 UTC",
       "chapters": [
         {
           "id": "cap-1",
