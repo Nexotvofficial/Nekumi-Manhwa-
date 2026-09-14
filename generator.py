@@ -7,7 +7,7 @@ import base64
 import concurrent.futures
 import urllib.parse
 from datetime import datetime
-from PIL import Image
+from PIL import Image, ImageOps
 
 try:
     import requests
@@ -53,6 +53,56 @@ ENABLE_REMOTE_UPLOAD = True
 GITHUB_TOKEN_ENV = "GH_STORAGE_TOKEN"
 API_BASE = "https://api.github.com"
 
+# Número de hilos usados para conversión de imágenes y para subir blobs.
+MAX_WORKERS = 8
+# Reintentos automáticos para llamadas a la API de GitHub (errores transitorios).
+GH_API_MAX_RETRIES = 3
+GH_API_BACKOFF_FACTOR = 1.5
+
+
+def _build_requests_session():
+    """Crea una sesión de requests con reintentos automáticos (backoff exponencial)
+    para errores transitorios de red o de la API de GitHub (429/500/502/503/504)."""
+    if requests is None:
+        return None
+    session = requests.Session()
+    try:
+        from requests.adapters import HTTPAdapter
+        try:
+            from urllib3.util.retry import Retry
+        except ImportError:
+            from requests.packages.urllib3.util.retry import Retry
+
+        retry_kwargs = dict(
+            total=GH_API_MAX_RETRIES,
+            backoff_factor=GH_API_BACKOFF_FACTOR,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        try:
+            retry = Retry(allowed_methods=["GET", "POST", "PATCH"], **retry_kwargs)
+        except TypeError:
+            # Versiones viejas de urllib3 usan 'method_whitelist' en vez de 'allowed_methods'.
+            retry = Retry(method_whitelist=["GET", "POST", "PATCH"], **retry_kwargs)
+
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+    except Exception as e:
+        print(f"⚠️ No se pudo configurar reintentos automáticos para la API de GitHub: {e}")
+    return session
+
+
+_HTTP_SESSION = _build_requests_session()
+
+
+def _atomic_write_json(path, data):
+    """Escribe JSON de forma atómica (archivo temporal + reemplazo) para evitar
+    dejar el archivo corrupto/incompleto si el proceso se interrumpe a mitad de escritura."""
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_path, path)
+
 
 def _gh_headers():
     token = os.environ.get(GITHUB_TOKEN_ENV)
@@ -66,9 +116,10 @@ def _gh_headers():
 
 
 def _create_blob(owner, repo, headers, local_path):
+    session = _HTTP_SESSION or requests
     with open(local_path, "rb") as f:
         content_b64 = base64.b64encode(f.read()).decode("utf-8")
-    r = requests.post(
+    r = session.post(
         f"{API_BASE}/repos/{owner}/{repo}/git/blobs",
         headers=headers,
         json={"content": content_b64, "encoding": "base64"},
@@ -91,17 +142,19 @@ def push_files_to_repo(repo_name, file_map, commit_message, owner=GITHUB_USER, b
         print(f"⚠️ No hay token en la variable de entorno '{GITHUB_TOKEN_ENV}'. Se omite la subida a '{repo_name}' (se reintentará en la próxima corrida).")
         return False
 
+    session = _HTTP_SESSION or requests
+
     try:
-        ref = requests.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/ref/heads/{branch}", headers=headers, timeout=30)
+        ref = session.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/ref/heads/{branch}", headers=headers, timeout=30)
         ref.raise_for_status()
         base_commit_sha = ref.json()["object"]["sha"]
 
-        base_commit = requests.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/commits/{base_commit_sha}", headers=headers, timeout=30)
+        base_commit = session.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/commits/{base_commit_sha}", headers=headers, timeout=30)
         base_commit.raise_for_status()
         base_tree_sha = base_commit.json()["tree"]["sha"]
 
         tree_entries = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_map = {
                 executor.submit(_create_blob, owner, repo_name, headers, local_path): remote_path
                 for remote_path, local_path in file_map.items()
@@ -111,19 +164,19 @@ def push_files_to_repo(repo_name, file_map, commit_message, owner=GITHUB_USER, b
                 blob_sha = future.result()
                 tree_entries.append({"path": remote_path, "mode": "100644", "type": "blob", "sha": blob_sha})
 
-        new_tree = requests.post(
+        new_tree = session.post(
             f"{API_BASE}/repos/{owner}/{repo_name}/git/trees", headers=headers,
             json={"base_tree": base_tree_sha, "tree": tree_entries}, timeout=60
         )
         new_tree.raise_for_status()
 
-        new_commit = requests.post(
+        new_commit = session.post(
             f"{API_BASE}/repos/{owner}/{repo_name}/git/commits", headers=headers,
             json={"message": commit_message, "tree": new_tree.json()["sha"], "parents": [base_commit_sha]}, timeout=30
         )
         new_commit.raise_for_status()
 
-        patch = requests.patch(
+        patch = session.patch(
             f"{API_BASE}/repos/{owner}/{repo_name}/git/refs/heads/{branch}", headers=headers,
             json={"sha": new_commit.json()["sha"]}, timeout=30
         )
@@ -168,9 +221,13 @@ def auto_fix_and_organize():
 
 def create_webp(input_path, output_path, quality=80):
     try:
-        pil_img = Image.open(input_path).convert("RGB")
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        pil_img.save(output_path, "WEBP", quality=quality)
+        with Image.open(input_path) as raw_img:
+            # Corrige orientación según metadata EXIF (fotos/escaneos girados por cámara/escáner).
+            # No afecta a imágenes que ya vienen bien orientadas o sin metadata EXIF.
+            pil_img = ImageOps.exif_transpose(raw_img)
+            pil_img = pil_img.convert("RGB")
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            pil_img.save(output_path, "WEBP", quality=quality)
         return True
     except Exception as e:
         print(f"❌ Error procesando {input_path}: {e}")
@@ -203,8 +260,7 @@ def load_cache():
 
 def save_cache(cache):
     try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
+        _atomic_write_json(CACHE_FILE, cache)
     except Exception as e:
         print(f"⚠️ No se pudo guardar {CACHE_FILE}: {e}")
 
@@ -254,8 +310,7 @@ def auto_setup_manga_folder(manga_path, manga_id):
     }
 
     if not os.path.exists(json_info_path):
-        with open(json_info_path, "w", encoding="utf-8") as f:
-            json.dump(default_meta, f, ensure_ascii=False, indent=2)
+        _atomic_write_json(json_info_path, default_meta)
         print(f"📝 Plantilla 'info.json' generada automáticamente en '{manga_id}'.")
     else:
         try:
@@ -269,8 +324,7 @@ def auto_setup_manga_folder(manga_path, manga_id):
                     updated = True
 
             if updated:
-                with open(json_info_path, "w", encoding="utf-8") as f:
-                    json.dump(current_data, f, ensure_ascii=False, indent=2)
+                _atomic_write_json(json_info_path, current_data)
                 print(f"🔄 'info.json' en '{manga_id}' actualizado con campos faltantes.")
         except Exception as e:
             print(f"⚠️ Error actualizando info.json en {manga_id}: {e}")
@@ -395,6 +449,54 @@ def resolve_cover(manga_id, repo_name=GITHUB_REPO):
     return ""
 
 
+def _convert_chapter_images(chap_path, images):
+    """Convierte las imágenes de un capítulo a WebP en paralelo (hilos), preservando
+    el orden original de páginas. Devuelve la lista de rutas finales temporales
+    (safe_paths) en el mismo orden que 'images'."""
+    safe_paths = [None] * len(images)
+    conversion_tasks = []  # (index, img_name, img_path, temp_path)
+
+    for index, img_name in enumerate(images):
+        img_path = os.path.join(chap_path, img_name)
+        temp_path = os.path.join(chap_path, f"temp_page_{index:04d}.webp")
+
+        if img_name.lower().endswith('.webp'):
+            if os.path.abspath(img_path) != os.path.abspath(temp_path):
+                shutil.move(img_path, temp_path)
+            safe_paths[index] = temp_path
+        else:
+            conversion_tasks.append((index, img_name, img_path, temp_path))
+
+    if conversion_tasks:
+        workers = min(MAX_WORKERS, len(conversion_tasks))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            future_map = {
+                executor.submit(create_webp, img_path, temp_path): (index, img_name, img_path, temp_path)
+                for (index, img_name, img_path, temp_path) in conversion_tasks
+            }
+            for future in concurrent.futures.as_completed(future_map):
+                index, img_name, img_path, temp_path = future_map[future]
+                try:
+                    ok = future.result()
+                except Exception as e:
+                    print(f"❌ Error inesperado procesando {img_path}: {e}")
+                    ok = False
+
+                if ok:
+                    if os.path.exists(img_path):
+                        os.remove(img_path)
+                    safe_paths[index] = temp_path
+                else:
+                    # Mismo comportamiento de fallback que antes: si la conversión falla,
+                    # se conserva el archivo original tal cual (no se borra la imagen).
+                    _, ext = os.path.splitext(img_name)
+                    fallback_path = os.path.join(chap_path, f"temp_page_{index:04d}{ext}")
+                    shutil.move(img_path, fallback_path)
+                    safe_paths[index] = fallback_path
+
+    return safe_paths
+
+
 def process_manga(manga_id, manga_path, prev_cache):
     """Pipeline completo para un manga (solo corre cuando el cache indica cambios).
     prev_cache: lo que había guardado para este manga_id en uploaded_cache.json
@@ -437,26 +539,7 @@ def process_manga(manga_id, manga_path, prev_cache):
             continue
 
         images = sorted(raw_images, key=natural_sort_key)
-        safe_paths = []
-
-        for index, img_name in enumerate(images):
-            img_path = os.path.join(chap_path, img_name)
-            temp_path = os.path.join(chap_path, f"temp_page_{index:04d}.webp")
-
-            if img_name.lower().endswith('.webp'):
-                if os.path.abspath(img_path) != os.path.abspath(temp_path):
-                    shutil.move(img_path, temp_path)
-                safe_paths.append(temp_path)
-            else:
-                if create_webp(img_path, temp_path):
-                    if os.path.exists(img_path):
-                        os.remove(img_path)
-                    safe_paths.append(temp_path)
-                else:
-                    _, ext = os.path.splitext(img_name)
-                    fallback_path = os.path.join(chap_path, f"temp_page_{index:04d}{ext}")
-                    shutil.move(img_path, fallback_path)
-                    safe_paths.append(fallback_path)
+        safe_paths = _convert_chapter_images(chap_path, images)
 
         pages = []
         final_paths = []
@@ -571,7 +654,16 @@ def generate_catalog():
             continue
 
         # 2. Cache miss -> procesar (usa el cache previo para no perder caps ya subidos)
-        entry, manga_cache_out = process_manga(manga_id, manga_path, cached)
+        try:
+            entry, manga_cache_out = process_manga(manga_id, manga_path, cached)
+        except Exception as e:
+            print(f"❌ Error procesando '{manga_id}', se omite en esta corrida: {e}")
+            # Si había una entrada válida en cache previo, la conservamos para no perderla.
+            if cached and cached.get("entry"):
+                manga_list.append(cached["entry"])
+                new_cache[manga_id] = cached
+            continue
+
         if entry:
             manga_list.append(entry)
             signature_after = compute_manga_signature(manga_id, manga_path)
@@ -579,8 +671,7 @@ def generate_catalog():
             manga_cache_out["entry"] = entry
             new_cache[manga_id] = manga_cache_out
 
-    with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(manga_list, f, ensure_ascii=False, indent=2)
+    _atomic_write_json(OUTPUT_JSON, manga_list)
 
     save_cache(new_cache)
 
