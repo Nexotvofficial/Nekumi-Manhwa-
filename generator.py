@@ -3,9 +3,16 @@ import json
 import re
 import shutil
 import hashlib
+import base64
+import concurrent.futures
 import urllib.parse
 from datetime import datetime
 from PIL import Image
+
+try:
+    import requests
+except ImportError:
+    requests = None
 
 # Configuración del Repositorio de GitHub Predeterminado
 GITHUB_USER = "Nexotvofficial"
@@ -28,17 +35,105 @@ SYSTEM_ITEMS = {
 }
 
 # ------------------------------------------------------------------
-# IMPORTANTE SOBRE MULTI-REPO:
-# El campo "repo" en info.json solo cambia la URL que se genera
-# (cdn.jsdelivr.net/gh/USER/ESE_REPO@main/...). El script NO copia ni
-# sube archivos a ese otro repositorio. Para que un manga "viva" en
-# otro repo de verdad, ese repo tiene que contener físicamente la
-# misma ruta catalog/<manga_id>/cap-X/... — normalmente esto se logra
-# agregándolo como git submodule dentro de catalog/<manga_id>, o con
-# un paso adicional que haga push vía API de GitHub. Si el repo no
-# tiene esos archivos, la URL generada dará 404 aunque el JSON se vea
-# perfecto.
+# SUBIDA AUTOMÁTICA A REPOS SECUNDARIOS (almacén de capítulos)
+# Cuando el info.json de un manga tiene "repo" distinto al principal,
+# el script sube las imágenes procesadas directamente a ESE repo vía
+# la API de Git de GitHub (un solo commit por manga), y luego borra
+# la copia local para que el repo principal no acumule peso.
+#
+# Requiere:
+#  - pip install requests
+#  - Un token con permiso de escritura sobre el repo destino, en la
+#    variable de entorno definida en GITHUB_TOKEN_ENV (el GITHUB_TOKEN
+#    automático de Actions NO sirve para escribir en otros repos).
+# Si no hay token disponible, simplemente no sube nada y avisa por
+# consola (no rompe la generación del JSON).
 # ------------------------------------------------------------------
+ENABLE_REMOTE_UPLOAD = True
+GITHUB_TOKEN_ENV = "GH_STORAGE_TOKEN"
+API_BASE = "https://api.github.com"
+
+
+def _gh_headers():
+    token = os.environ.get(GITHUB_TOKEN_ENV)
+    if not token:
+        return None
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
+def _create_blob(owner, repo, headers, local_path):
+    with open(local_path, "rb") as f:
+        content_b64 = base64.b64encode(f.read()).decode("utf-8")
+    r = requests.post(
+        f"{API_BASE}/repos/{owner}/{repo}/git/blobs",
+        headers=headers,
+        json={"content": content_b64, "encoding": "base64"},
+        timeout=60,
+    )
+    r.raise_for_status()
+    return r.json()["sha"]
+
+
+def push_files_to_repo(repo_name, file_map, commit_message, owner=GITHUB_USER, branch=BRANCH):
+    """Sube en UN SOLO commit todos los archivos de file_map = {ruta_remota: ruta_local}."""
+    if not file_map:
+        return True
+    if requests is None:
+        print("⚠️ Falta el paquete 'requests' (pip install requests). No se sube nada a repos remotos.")
+        return False
+
+    headers = _gh_headers()
+    if not headers:
+        print(f"⚠️ No hay token en la variable de entorno '{GITHUB_TOKEN_ENV}'. Se omite la subida a '{repo_name}' (se reintentará en la próxima corrida).")
+        return False
+
+    try:
+        ref = requests.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/ref/heads/{branch}", headers=headers, timeout=30)
+        ref.raise_for_status()
+        base_commit_sha = ref.json()["object"]["sha"]
+
+        base_commit = requests.get(f"{API_BASE}/repos/{owner}/{repo_name}/git/commits/{base_commit_sha}", headers=headers, timeout=30)
+        base_commit.raise_for_status()
+        base_tree_sha = base_commit.json()["tree"]["sha"]
+
+        tree_entries = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_map = {
+                executor.submit(_create_blob, owner, repo_name, headers, local_path): remote_path
+                for remote_path, local_path in file_map.items()
+            }
+            for future in concurrent.futures.as_completed(future_map):
+                remote_path = future_map[future]
+                blob_sha = future.result()
+                tree_entries.append({"path": remote_path, "mode": "100644", "type": "blob", "sha": blob_sha})
+
+        new_tree = requests.post(
+            f"{API_BASE}/repos/{owner}/{repo_name}/git/trees", headers=headers,
+            json={"base_tree": base_tree_sha, "tree": tree_entries}, timeout=60
+        )
+        new_tree.raise_for_status()
+
+        new_commit = requests.post(
+            f"{API_BASE}/repos/{owner}/{repo_name}/git/commits", headers=headers,
+            json={"message": commit_message, "tree": new_tree.json()["sha"], "parents": [base_commit_sha]}, timeout=30
+        )
+        new_commit.raise_for_status()
+
+        patch = requests.patch(
+            f"{API_BASE}/repos/{owner}/{repo_name}/git/refs/heads/{branch}", headers=headers,
+            json={"sha": new_commit.json()["sha"]}, timeout=30
+        )
+        patch.raise_for_status()
+
+        print(f"☁️  Subidas {len(tree_entries)} imagen(es) a '{repo_name}' en un solo commit.")
+        return True
+    except Exception as e:
+        print(f"❌ Error subiendo a '{repo_name}': {e}")
+        return False
 
 
 def get_media_url(file_path, repo_name=GITHUB_REPO):
@@ -300,29 +395,45 @@ def resolve_cover(manga_id, repo_name=GITHUB_REPO):
     return ""
 
 
-def process_manga(manga_id, manga_path):
-    """Pipeline completo para un manga (solo corre cuando el cache indica cambios)."""
+def process_manga(manga_id, manga_path, prev_cache):
+    """Pipeline completo para un manga (solo corre cuando el cache indica cambios).
+    prev_cache: lo que había guardado para este manga_id en uploaded_cache.json
+    (se usa para no perder capítulos que ya se subieron y se borraron localmente)."""
     auto_setup_manga_folder(manga_path, manga_id)
 
     default_title = manga_id.replace("-", " ").title()
     meta = load_manga_metadata(manga_path, default_title)
     manga_repo = meta.get("repo", GITHUB_REPO)
+    remote_mode = ENABLE_REMOTE_UPLOAD and manga_repo != GITHUB_REPO
 
-    if manga_repo != GITHUB_REPO:
-        print(f"   ↪️  '{manga_id}' usa repo '{manga_repo}'. Verifica que ESE repo tenga físicamente "
-              f"la ruta catalog/{manga_id}/... (submodule o subida manual), o las imágenes darán 404.")
+    prev_chapters_cache = (prev_cache or {}).get("chapters", {})
+    new_chapters_cache = {}
+    pending_uploads = {}  # ruta_remota -> ruta_local
+
+    chap_folders_disk = [
+        d for d in os.listdir(manga_path) if os.path.isdir(os.path.join(manga_path, d))
+    ]
+    # Unimos con lo que ya conocíamos por cache, por si la carpeta local
+    # quedó vacía/borrada tras una subida anterior.
+    all_chap_keys = sorted(set(chap_folders_disk) | set(prev_chapters_cache.keys()), key=natural_sort_key)
 
     chapters = []
-    for chap_folder in sorted(os.listdir(manga_path), key=natural_sort_key):
+    for chap_folder in all_chap_keys:
         chap_path = os.path.join(manga_path, chap_folder)
-        if not os.path.isdir(chap_path):
-            continue
 
-        raw_images = [
-            f for f in os.listdir(chap_path)
-            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover") and f != ".gitkeep"
-        ]
+        raw_images = []
+        if os.path.isdir(chap_path):
+            raw_images = [
+                f for f in os.listdir(chap_path)
+                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and not f.startswith("cover") and f != ".gitkeep"
+            ]
+
         if not raw_images:
+            # No hay nada nuevo localmente: reutiliza lo ya conocido (probablemente ya subido).
+            cached_chap = prev_chapters_cache.get(chap_folder)
+            if cached_chap:
+                chapters.append(cached_chap)
+                new_chapters_cache[chap_folder] = cached_chap
             continue
 
         images = sorted(raw_images, key=natural_sort_key)
@@ -348,6 +459,7 @@ def process_manga(manga_id, manga_path):
                     safe_paths.append(fallback_path)
 
         pages = []
+        final_paths = []
         for index, temp_path in enumerate(safe_paths):
             _, ext = os.path.splitext(temp_path)
             final_name = f"{index+1:03d}{ext}"
@@ -355,22 +467,55 @@ def process_manga(manga_id, manga_path):
             if os.path.abspath(temp_path) != os.path.abspath(final_path):
                 shutil.move(temp_path, final_path)
 
+            final_paths.append(final_path)
             pages.append(get_media_url(final_path, repo_name=manga_repo))
 
+        if remote_mode:
+            for final_path in final_paths:
+                remote_rel = final_path.replace("\\", "/")
+                pending_uploads[remote_rel] = final_path
+
         chap_num = extract_chapter_number(chap_folder)
-        chapters.append({
+        chapter_data = {
             "id": chap_folder.lower().replace(" ", "-"),
             "number": chap_num,
             "title": f"Capítulo {chap_num}",
             "pages_count": len(pages),
             "pages": pages
-        })
+        }
+        chapters.append(chapter_data)
+        new_chapters_cache[chap_folder] = chapter_data
 
     chapters.sort(key=lambda x: x["number"])
-    cover_url = resolve_cover(manga_id, repo_name=manga_repo)
+
+    # Portada: si hay una nueva localmente la procesa; si no, reutiliza la que ya se conocía.
+    has_local_cover_source = any(
+        os.path.exists(os.path.join(IMG_DIR, f"{manga_id}{ext}")) or
+        os.path.exists(os.path.join(manga_path, f"cover{ext}"))
+        for ext in ('.webp', '.png', '.jpg', '.jpeg')
+    )
+    prev_cover_url = (prev_cache or {}).get("cover_url", "")
+
+    if has_local_cover_source or not prev_cover_url:
+        cover_url = resolve_cover(manga_id, repo_name=manga_repo)
+        cover_target = os.path.join(IMG_DIR, f"{manga_id}.webp")
+        if remote_mode and os.path.exists(cover_target):
+            pending_uploads[cover_target.replace("\\", "/")] = cover_target
+    else:
+        cover_url = prev_cover_url
+
+    if remote_mode and pending_uploads:
+        ok = push_files_to_repo(manga_repo, pending_uploads, f"Auto: capítulos/portada de {manga_id}")
+        if ok:
+            for local_path in pending_uploads.values():
+                try:
+                    os.remove(local_path)
+                except OSError:
+                    pass
+        # si falla, se deja todo local para reintentar en la próxima corrida
 
     if not (chapters or cover_url):
-        return None
+        return None, None
 
     entry = {
         "id": manga_id,
@@ -388,9 +533,10 @@ def process_manga(manga_id, manga_path):
         "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
         "chapters": chapters
     }
+    manga_cache_out = {"cover_url": cover_url, "chapters": new_chapters_cache}
     print(f"✅ [{meta.get('category').upper()}] [{meta.get('status')}] (Repo: {manga_repo}) "
           f"'{manga_id}' sincronizado con {len(chapters)} caps activos.")
-    return entry
+    return entry, manga_cache_out
 
 
 def generate_catalog():
@@ -424,12 +570,14 @@ def generate_catalog():
             print(f"⚡ [CACHE] '{manga_id}' sin cambios, se reutiliza el resultado anterior.")
             continue
 
-        # 2. Cache miss -> procesar de verdad
-        entry = process_manga(manga_id, manga_path)
+        # 2. Cache miss -> procesar (usa el cache previo para no perder caps ya subidos)
+        entry, manga_cache_out = process_manga(manga_id, manga_path, cached)
         if entry:
             manga_list.append(entry)
             signature_after = compute_manga_signature(manga_id, manga_path)
-            new_cache[manga_id] = {"signature": signature_after, "entry": entry}
+            manga_cache_out["signature"] = signature_after
+            manga_cache_out["entry"] = entry
+            new_cache[manga_id] = manga_cache_out
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(manga_list, f, ensure_ascii=False, indent=2)
