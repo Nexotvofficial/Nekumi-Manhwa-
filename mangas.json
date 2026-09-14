@@ -15,7 +15,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 11,
-    "last_updated": "2026-09-14 03:45:21 UTC",
+    "last_updated": "2026-09-14 03:54:24 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -239,7 +239,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 2,
-    "last_updated": "2026-09-14 03:45:21 UTC",
+    "last_updated": "2026-09-14 03:54:24 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -367,7 +367,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 21,
-    "last_updated": "2026-09-14 03:45:21 UTC",
+    "last_updated": "2026-09-14 03:54:24 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -1311,8 +1311,8 @@
       "Fantasía"
     ],
     "repo": "Nekumi-Catalog-02",
-    "total_chapters": 7,
-    "last_updated": "2026-09-14 03:45:28 UTC",
+    "total_chapters": 8,
+    "last_updated": "2026-09-14 03:54:30 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -1547,6 +1547,34 @@
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-7/025.webp",
           "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-7/026.webp"
         ]
+      },
+      {
+        "id": "cap-8",
+        "number": 8,
+        "title": "Capítulo 8",
+        "pages_count": 20,
+        "pages": [
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/012.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/013.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/014.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/015.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/016.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/017.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/018.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/019.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/reversal/cap-8/020.webp"
+        ]
       }
     ]
   },
@@ -1566,7 +1594,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 1,
-    "last_updated": "2026-09-14 03:45:28 UTC",
+    "last_updated": "2026-09-14 03:54:30 UTC",
     "chapters": [
       {
         "id": "cap-1",
