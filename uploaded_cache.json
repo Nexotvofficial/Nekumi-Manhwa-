@@ -207,7 +207,7 @@
         ]
       }
     },
-    "signature": "bc0bde3d0e387296cc53f3811d039455",
+    "signature": "f5aecc7833ad2b61a42a856c4a3306ed",
     "entry": {
       "id": "Aikatsu",
       "title": "Aikatsu",
@@ -224,7 +224,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 11,
-      "last_updated": "2026-09-14 03:07:01 UTC",
+      "last_updated": "2026-09-14 03:09:30 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -545,7 +545,7 @@
         ]
       }
     },
-    "signature": "9cbf79bb90efd87d89d200f4f1cd3b5d",
+    "signature": "9ed5c0cdbbd1acebec265d5c7fb8bdd6",
     "entry": {
       "id": "crazy-demon",
       "title": "Crazy Demon",
@@ -562,7 +562,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 2,
-      "last_updated": "2026-09-14 03:07:01 UTC",
+      "last_updated": "2026-09-14 03:09:30 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -1604,7 +1604,7 @@
         ]
       }
     },
-    "signature": "610159942247daf8a3b48a19fd8d8bac",
+    "signature": "cb32477275b845dfdb7910dbe0867ab0",
     "entry": {
       "id": "el-regreso-del-caballero-de-la-muerte-clase-apocalipsis",
       "title": "El Regreso Del Caballero De La Muerte Clase Apocalipsis",
@@ -1621,7 +1621,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 21,
-      "last_updated": "2026-09-14 03:07:01 UTC",
+      "last_updated": "2026-09-14 03:09:30 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -2638,11 +2638,11 @@
         ]
       }
     },
-    "signature": "06d91550fb074108318b3acec82c7133",
+    "signature": "a4def4eb07b75c9cd473655f5d979e5e",
     "entry": {
       "id": "reversal",
       "title": "Reversal",
-      "category": "manhwa",
+      "category": "manga",
       "cover": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/img/reversal.webp",
       "cover_thumb": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/img/reversal.webp",
       "status": "En emisión",
@@ -2655,7 +2655,7 @@
       ],
       "repo": "Nekumi-Catalog-02",
       "total_chapters": 2,
-      "last_updated": "2026-09-14 03:07:11 UTC",
+      "last_updated": "2026-09-14 03:09:30 UTC",
       "chapters": [
         {
           "id": "cap-1",
@@ -2812,7 +2812,7 @@
         ]
       }
     },
-    "signature": "a5a362419a3cfc3ec8a12fcb0baffed9",
+    "signature": "2647edf436f67466cf0d931bc13e32a3",
     "entry": {
       "id": "solo-leveling-ragnarok",
       "title": "Solo Leveling Ragnarok",
@@ -2829,7 +2829,7 @@
       ],
       "repo": "Nekumi-Manhwa-",
       "total_chapters": 1,
-      "last_updated": "2026-09-14 03:07:11 UTC",
+      "last_updated": "2026-09-14 03:09:30 UTC",
       "chapters": [
         {
           "id": "cap-1",
