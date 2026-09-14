@@ -3,8 +3,8 @@
     "id": "Aikatsu",
     "title": "Aikatsu",
     "category": "manga",
-    "cover": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/img/Aikatsu.webp",
-    "cover_thumb": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/img/Aikatsu.webp",
+    "cover": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
+    "cover_thumb": "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/img/Aikatsu.webp",
     "status": "En emisión",
     "featured": true,
     "rating": 0.0,
@@ -13,9 +13,9 @@
       "Acción",
       "Fantasía"
     ],
-    "repo": "Nekumi-Catalog-02",
+    "repo": "Nekumi-Manhwa-",
     "total_chapters": 11,
-    "last_updated": "2026-09-14 01:48:03 UTC",
+    "last_updated": "2026-09-14 01:51:29 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -23,18 +23,18 @@
         "title": "Capítulo 1",
         "pages_count": 12,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/010.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/011.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-1/012.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-1/012.webp"
         ]
       },
       {
@@ -43,16 +43,16 @@
         "title": "Capítulo 2",
         "pages_count": 10,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-2/010.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-2/010.webp"
         ]
       },
       {
@@ -61,15 +61,15 @@
         "title": "Capítulo 3",
         "pages_count": 9,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-3/009.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-3/009.webp"
         ]
       },
       {
@@ -78,14 +78,14 @@
         "title": "Capítulo 4",
         "pages_count": 8,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-4/008.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-4/008.webp"
         ]
       },
       {
@@ -94,22 +94,22 @@
         "title": "Capítulo 5",
         "pages_count": 16,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/010.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/011.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/012.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/013.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/014.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/015.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-5/016.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/012.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/013.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/014.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/015.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-5/016.webp"
         ]
       },
       {
@@ -118,18 +118,18 @@
         "title": "Capítulo 6",
         "pages_count": 12,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/010.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/011.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-6/012.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/010.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/011.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-6/012.webp"
         ]
       },
       {
@@ -138,15 +138,15 @@
         "title": "Capítulo 7",
         "pages_count": 9,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-7/009.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-7/009.webp"
         ]
       },
       {
@@ -155,16 +155,16 @@
         "title": "Capítulo 8",
         "pages_count": 10,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-8/010.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-8/010.webp"
         ]
       },
       {
@@ -173,16 +173,16 @@
         "title": "Capítulo 9",
         "pages_count": 10,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-9/010.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-9/010.webp"
         ]
       },
       {
@@ -191,16 +191,16 @@
         "title": "Capítulo 10",
         "pages_count": 10,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-10/010.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-10/010.webp"
         ]
       },
       {
@@ -209,16 +209,16 @@
         "title": "Capítulo 11",
         "pages_count": 10,
         "pages": [
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/001.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/002.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/003.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/004.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/005.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/006.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/007.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/008.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/009.webp",
-          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Catalog-02@main/catalog/Aikatsu/cap-11/010.webp"
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/001.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/002.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/003.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/004.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/005.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/006.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/007.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/008.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/009.webp",
+          "https://cdn.jsdelivr.net/gh/Nexotvofficial/Nekumi-Manhwa-@main/catalog/Aikatsu/cap-11/010.webp"
         ]
       }
     ]
@@ -239,7 +239,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 2,
-    "last_updated": "2026-09-14 01:48:03 UTC",
+    "last_updated": "2026-09-14 01:51:30 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -367,7 +367,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 21,
-    "last_updated": "2026-09-14 01:48:03 UTC",
+    "last_updated": "2026-09-14 01:51:30 UTC",
     "chapters": [
       {
         "id": "cap-1",
@@ -1312,7 +1312,7 @@
     ],
     "repo": "Nekumi-Manhwa-",
     "total_chapters": 1,
-    "last_updated": "2026-09-14 01:48:03 UTC",
+    "last_updated": "2026-09-14 01:51:30 UTC",
     "chapters": [
       {
         "id": "cap-1",
