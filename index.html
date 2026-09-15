@@ -35,31 +35,45 @@
 <main>
   <section class="wrap hero">
     <div class="hero-copy">
+      <span class="hero-eyebrow">Sin anuncios · sin cortes · gratis</span>
       <h1>Historias que<br>no <em>terminan</em><br>al bajar.</h1>
-      <p>Manhwa organizado como se lee de verdad: en tira, de arriba hacia abajo, sin cortes de página. Elegí un título y seguí bajando.</p>
-      <a href="#catalogo" class="btn">Explorar catálogo</a>
+      <p>Nada de tarjetas cortadas ni saltos raros: cada capítulo es una tira continua, tal como se dibuja. Elegí un título, apretá play con el dedo, y no soltás hasta el final.</p>
+      <div class="hero-stats" id="heroStats"></div>
+      <div class="hero-ctas">
+        <a href="#catalogo" class="btn">Explorar catálogo</a>
+        <button class="btn-text" id="surpriseBtn" type="button">🎲 Sorprendeme</button>
+      </div>
     </div>
     <div class="strip" id="heroStrip" aria-hidden="true"></div>
   </section>
 
   <section class="wrap section" id="continuar" hidden>
     <div class="section-head">
-      <h2>Seguir leyendo</h2>
+      <div>
+        <span class="section-eyebrow">Justo donde lo dejaste</span>
+        <h2>Seguir leyendo</h2>
+      </div>
     </div>
     <div class="shelf" id="continueShelf"></div>
   </section>
 
   <section class="wrap section" id="novedades">
     <div class="section-head">
-      <h2>Recién actualizado</h2>
+      <div>
+        <span class="section-eyebrow">Lo último que subió el repo</span>
+        <h2>Recién actualizado</h2>
+      </div>
       <span class="count" id="freshCount"></span>
     </div>
-    <div class="grid" id="freshGrid"></div>
+    <div class="grid" id="freshGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
   </section>
 
-  <section class="wrap section" id="catalogo">
+  <section class="wrap section section-alt" id="catalogo">
     <div class="section-head">
-      <h2>Catálogo completo</h2>
+      <div>
+        <span class="section-eyebrow">Todo lo que hay, sin filtrar</span>
+        <h2>Catálogo completo</h2>
+      </div>
       <span class="count" id="totalCount"></span>
     </div>
     <div class="chips" id="genreChips"></div>
@@ -67,7 +81,7 @@
     <div class="chips">
       <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
     </div>
-    <div class="grid" id="fullGrid"></div>
+    <div class="grid" id="fullGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
     <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
   </section>
 </main>
