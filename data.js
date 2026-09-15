@@ -281,10 +281,41 @@ function showToast(message, { icon = '', duration = 2600 } = {}) {
   }, duration);
 }
 
-/* ---------- título al azar ("Sorprendeme") ---------- */
+/* ---------- aviso de cookies ----------
+   Nota honesta: esto es un aviso informativo, no un CMP completo. No bloquea
+   la carga de Firebase/anuncios antes de que el usuario elija (eso requiere
+   Google Consent Mode o un CMP como Funding Choices/CookieYes). Si vas a
+   servir anuncios a usuarios de la UE/UK, conviene sumar uno de esos. */
+const COOKIE_CONSENT_KEY = 'nekumi_cookie_consent_v1';
 
-function pickRandomManga(list) {
-  const arr = (list || []).filter((m) => (m.chapters || []).length > 0);
-  if (arr.length === 0) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
+function initCookieConsent() {
+  try {
+    if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
+  } catch {
+    return;
+  }
+  if (document.getElementById('cookieBanner')) return;
+
+  const el = document.createElement('div');
+  el.id = 'cookieBanner';
+  el.className = 'cookie-banner';
+  el.innerHTML = `
+    <p>Usamos almacenamiento local y, si iniciás sesión, servicios de Google (Firebase) para guardar tus favoritos y tu progreso. El sitio puede mostrar anuncios de terceros. Más info en <a href="privacy.html">Privacidad</a>.</p>
+    <div class="cookie-banner-actions">
+      <button class="btn ghost" id="cookieDecline" type="button">Solo lo esencial</button>
+      <button class="btn" id="cookieAccept" type="button">Aceptar</button>
+    </div>
+  `;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+
+  const close = (value) => {
+    try { localStorage.setItem(COOKIE_CONSENT_KEY, value); } catch { /* no pasa nada */ }
+    el.classList.remove('in');
+    setTimeout(() => el.remove(), 300);
+  };
+  document.getElementById('cookieAccept').addEventListener('click', () => close('accepted'));
+  document.getElementById('cookieDecline').addEventListener('click', () => close('declined'));
 }
+
+document.addEventListener('DOMContentLoaded', initCookieConsent);
