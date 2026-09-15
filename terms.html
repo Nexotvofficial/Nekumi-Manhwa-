@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="site-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Términos de uso — Nekumi</title>
+<link rel="canonical" href="https://nekutoon.com/terms.html">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a href="index.html" class="brand">NEKU<span>MI</span></a>
+    <nav class="nav-links">
+      <a href="index.html#novedades">Novedades</a>
+      <a href="index.html#catalogo">Catálogo</a>
+      <a href="favorites.html">Favoritos</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
+  </div>
+  <div class="nav-mobile">
+    <a href="index.html#novedades">Novedades</a>
+    <a href="index.html#catalogo">Catálogo</a>
+    <a href="favorites.html">Favoritos</a>
+  </div>
+</header>
+
+<main class="wrap legal-page">
+  <h1>Términos de uso</h1>
+  <p class="legal-updated">Última actualización: 15 de septiembre de 2026</p>
+
+  <p>Al usar Nekumi aceptás estos términos. Es una plantilla base: ajustala a tu situación real antes de considerarla definitiva.</p>
+
+  <h2>El servicio</h2>
+  <p>Nekumi es un lector de manhwa/manga en tira vertical. El catálogo se genera automáticamente y puede cambiar sin previo aviso (se agregan, actualizan o retiran títulos y capítulos).</p>
+
+  <h2>Cuentas</h2>
+  <p>Crear una cuenta es opcional y solo sirve para sincronizar favoritos y progreso entre dispositivos. Sos responsable de mantener segura tu contraseña. Podemos suspender cuentas que abusen del servicio (bots, scraping masivo, intentos de vulnerar la seguridad del sitio, etc.).</p>
+
+  <h2>Uso permitido</h2>
+  <ul>
+    <li>Usar el sitio para lectura personal.</li>
+    <li>No está permitido automatizar descargas masivas, redistribuir el contenido como propio, ni intentar eludir las medidas de seguridad del sitio (incluido el bloqueo de dominio/iframe).</li>
+  </ul>
+
+  <h2>Propiedad intelectual</h2>
+  <p>Las obras mostradas pertenecen a sus respectivos autores/editoriales. Si sos titular de derechos y querés que retiremos contenido, consultá nuestra <a href="dmca.html">política DMCA</a>.</p>
+
+  <h2>Publicidad</h2>
+  <p>El sitio puede mostrar anuncios de redes de terceros para sostener el servicio. No controlamos el contenido específico de cada anuncio individual, aunque intentamos usar redes con políticas de contenido razonables.</p>
+
+  <h2>Sin garantías</h2>
+  <p>El servicio se ofrece "tal cual", sin garantía de disponibilidad continua. Podemos modificar o discontinuar funciones en cualquier momento.</p>
+
+  <h2>Contacto</h2>
+  <p>Consultas sobre estos términos: <!-- TODO: correo de contacto -->.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span>Nekumi · catálogo generado automáticamente desde el repositorio.</span>
+    <nav class="footer-links">
+      <a href="dmca.html">DMCA</a>
+      <a href="privacy.html">Privacidad</a>
+      <a href="terms.html" class="current">Términos</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.querySelector('.nav').classList.toggle('menu-open');
+  });
+</script>
+</body>
+</html>
