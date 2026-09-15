@@ -1,5 +1,7 @@
 /* ============================================================
-   NEKUMI — ficha de título
+   NEKUMI v11 — ficha de título
+   Cabecera con fondo difuminado de la portada + lista de
+   capítulos + similares. Compatible con app.js (usa cardHTML).
    ============================================================ */
 
 let chapterSortDesc = true;
@@ -39,46 +41,53 @@ function renderDetail(manga) {
   const cover = manga.cover || manga.cover_thumb || '';
 
   document.getElementById('mainContent').innerHTML = `
-    <a class="detail-back" href="/">← Volver al catálogo</a>
-    <div class="detail-head">
-      <div class="detail-cover">
-        ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}">` : ''}
-      </div>
-      <div>
-        <div class="detail-title-row">
-          <h1 class="detail-title">${escapeHtml(manga.title || 'Sin título')}</h1>
-          <button class="fav-toggle static" id="detailFav" type="button" title="Favorito">${fav ? '♥' : '♡'}</button>
+    <div class="detail-hero">
+      <div class="detail-hero-bg" style="background-image:url('${escapeHtml(cover)}')"></div>
+      <div class="wrap">
+        <a class="detail-back" href="/">← Volver al catálogo</a>
+        <div class="detail-head">
+          <div class="detail-cover">
+            ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}">` : ''}
+          </div>
+          <div>
+            <div class="detail-title-row">
+              <h1 class="detail-title">${escapeHtml(manga.title || 'Sin título')}</h1>
+              <button class="fav-toggle static ${fav ? 'active' : ''}" id="detailFav" type="button" title="Favorito">${fav ? '♥' : '♡'}</button>
+            </div>
+            <div class="detail-meta">
+              <span class="status ${sClass}">${escapeHtml(manga.status || '')}</span>
+              <span>${escapeHtml(manga.category || '')}</span>
+              ${manga.rating ? `<span class="rating-inline">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
+              <span>${manga.total_chapters ?? chapters.length} capítulos</span>
+            </div>
+            <p class="detail-synopsis">${escapeHtml(manga.synopsis || '')}</p>
+            <div class="detail-genres">
+              ${(manga.genres || []).map((g) => `<span class="tag">${escapeHtml(g)}</span>`).join('')}
+            </div>
+            ${chapters.length === 0
+              ? `<p class="setting-hint">Todavía no hay capítulos publicados para este título.</p>`
+              : continueChap
+              ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(continueChap.id)}">▶ Continuar: ${escapeHtml(continueChap.title)}</a>`
+              : firstChap
+              ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(firstChap.id)}">▶ Leer desde el capítulo 1</a>`
+              : ''
+            }
+          </div>
         </div>
-        <div class="detail-meta">
-          <span class="status ${sClass}">${escapeHtml(manga.status || '')}</span>
-          <span>${escapeHtml(manga.category || '')}</span>
-          ${manga.rating ? `<span class="rating-inline">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
-          <span>${manga.total_chapters ?? chapters.length} capítulos</span>
-        </div>
-        <p class="detail-synopsis">${escapeHtml(manga.synopsis || '')}</p>
-        <div class="detail-genres">
-          ${(manga.genres || []).map((g) => `<span class="tag">${escapeHtml(g)}</span>`).join('')}
-        </div>
-        ${chapters.length === 0
-          ? `<p class="setting-hint">Todavía no hay capítulos publicados para este título.</p>`
-          : continueChap
-          ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(continueChap.id)}">Continuar: ${escapeHtml(continueChap.title)}</a>`
-          : firstChap
-          ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(firstChap.id)}">Leer desde el capítulo 1</a>`
-          : ''
-        }
       </div>
     </div>
 
-    <div class="chapter-list-head">
-      <h2>Capítulos</h2>
-      <button class="sort-toggle" id="sortToggle" type="button">Orden: más nuevo primero</button>
-    </div>
-    <div id="chapterList"></div>
+    <div class="wrap section">
+      <div class="chapter-list-head">
+        <h2>Capítulos</h2>
+        <button class="sort-toggle" id="sortToggle" type="button">Orden: más nuevo primero</button>
+      </div>
+      <div id="chapterList"></div>
 
-    <div class="similar-section" id="similarSection" hidden>
-      <h2>Títulos similares</h2>
-      <div class="grid" id="similarGrid"></div>
+      <div class="similar-section" id="similarSection" hidden>
+        <h2>Títulos similares</h2>
+        <div class="grid" id="similarGrid"></div>
+      </div>
     </div>
   `;
 
@@ -92,11 +101,11 @@ function renderDetail(manga) {
   });
 
   const favBtn = document.getElementById('detailFav');
-  favBtn.classList.toggle('active', fav);
   favBtn.addEventListener('click', () => {
     const nowFav = toggleFavorite(manga.id);
     favBtn.textContent = nowFav ? '♥' : '♡';
     favBtn.classList.toggle('active', nowFav);
+    showToast(nowFav ? 'Agregado a favoritos' : 'Quitado de favoritos', { icon: nowFav ? '♥' : '♡', duration: 1600 });
   });
 }
 
@@ -119,7 +128,7 @@ async function init() {
     catalog = await fetchCatalog();
   } catch {
     document.getElementById('mainContent').innerHTML = `
-      <div class="error-state">
+      <div class="wrap error-state">
         <h3>No pudimos cargar el catálogo</h3>
         <p>Probá de nuevo en unos segundos.</p>
         <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
@@ -131,7 +140,7 @@ async function init() {
   const manga = getMangaById(catalog, id);
   if (!manga) {
     document.getElementById('mainContent').innerHTML = `
-      <div class="error-state">
+      <div class="wrap error-state">
         <h3>No encontramos ese título</h3>
         <p><a class="btn ghost" href="/">Volver al catálogo</a></p>
       </div>`;
@@ -145,6 +154,18 @@ async function init() {
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.querySelector('.nav').classList.toggle('menu-open');
   });
+
+  // búsqueda rápida: redirige a la ficha del primer resultado al presionar Enter
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const term = searchInput.value.trim().toLowerCase();
+      if (!term) return;
+      const hit = catalog.find((m) => (m.title || '').toLowerCase().includes(term));
+      if (hit) window.location.href = `manga.html?id=${encodeURIComponent(hit.id)}`;
+    });
+  }
 }
 
 init();
