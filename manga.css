@@ -1,0 +1,134 @@
+/* ============================================================
+   NEKUMI — ficha del título (manga.html)
+   Se carga después de style.css y reutiliza sus variables y las
+   de home.css (--panel, --panel-line). No necesita tocar manga.js:
+   sólo re-viste las clases que ese archivo ya genera.
+   ============================================================ */
+
+:root{
+  --panel: #150F1D;
+  --panel-line: rgba(242,238,233,0.07);
+}
+
+/* ---------- cabecera con la portada difuminada de fondo ---------- */
+.detail-hero{
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-bottom: 26px;
+}
+.detail-hero-backdrop{
+  position: absolute;
+  inset: -14% -6%;
+  background-size: cover;
+  background-position: center 20%;
+  filter: blur(36px) saturate(1.2);
+  opacity: 0.40;
+  z-index: -2;
+}
+.detail-hero::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, var(--bg) 6%, rgba(14,11,20,0.74) 55%, rgba(14,11,20,0.52) 100%),
+    linear-gradient(0deg, var(--bg) 3%, rgba(14,11,20,0) 60%);
+}
+
+.detail-back{
+  margin: 22px 0 14px;
+}
+
+.detail-head{
+  grid-template-columns: 240px 1fr;
+  gap: 36px;
+  align-items: start;
+  margin-bottom: 0;
+  padding-bottom: 44px;
+}
+.detail-cover{
+  border-radius: 6px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+.detail-title{ max-width: 16ch; }
+.detail-meta{
+  gap: 10px 14px;
+  margin-bottom: 16px;
+}
+.detail-meta > *{
+  border: 1px solid var(--line);
+  background: rgba(14,11,20,0.5);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.detail-synopsis{
+  color: var(--muted);
+  font-size: 15px;
+}
+.tag{
+  background: rgba(14,11,20,0.5);
+}
+.tag:hover{ color: var(--paper); border-color: var(--accent); }
+
+/* ---------- lista de capítulos y similares dentro de paneles ---------- */
+.chapter-panel,
+.similar-section{
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  padding: 20px 22px 12px;
+  margin-bottom: 22px;
+}
+.similar-section{
+  margin-top: 0;
+  padding-bottom: 24px;
+}
+.chapter-list-head{
+  margin-bottom: 10px;
+}
+.chapter-list-head h2,
+.similar-section h2{
+  font-family: var(--display);
+  font-size: 30px;
+  margin: 0 0 0;
+}
+.similar-section h2{ margin-bottom: 18px; }
+.sort-toggle{
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 13px;
+  background: var(--bg-raised);
+}
+.sort-toggle:hover{ color: var(--paper); border-color: var(--accent); }
+
+.chapter-row{
+  gap: 14px;
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--panel-line);
+  border-radius: 5px;
+}
+.chapter-row:last-child{ border-bottom: none; }
+.chapter-row:hover{ background: var(--bg-raised-2); }
+.chapter-num{
+  width: 48px;
+  font-size: 24px;
+  text-align: right;
+}
+.chapter-row.is-read{ opacity: 0.72; }
+
+/* ---------- barra fija para retomar la lectura en celular ---------- */
+@media (max-width: 720px){
+  .detail-head{
+    grid-template-columns: 120px 1fr;
+    gap: 18px;
+    padding-bottom: 28px;
+  }
+  .detail-hero-backdrop{ opacity: 0.3; }
+  .chapter-panel,
+  .similar-section{ padding: 16px 14px 10px; border-radius: 6px; }
+  .chapter-list-head h2,
+  .similar-section h2{ font-size: 26px; }
+  .chapter-num{ width: 40px; font-size: 20px; }
+}
