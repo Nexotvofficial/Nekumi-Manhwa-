@@ -211,32 +211,6 @@ function renderReader() {
   }
 }
 
-/* ---------- miniaturas ---------- */
-
-function renderThumbDrawer() {
-  const drawer = document.getElementById('thumbDrawer');
-  const pages = getVisiblePages();
-  drawer.innerHTML = pages.map((p, i) => `
-    <button class="thumb" data-page="${i}" type="button">
-      <img src="${escapeHtml(pageUrl(p))}" alt="" loading="lazy">
-      <span>${i + 1}</span>
-    </button>
-  `).join('');
-  drawer.querySelectorAll('.thumb').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.page);
-      drawer.hidden = true;
-      if (PREFS.mode === 'paged') {
-        currentPageIndex = idx;
-        renderPagedImage();
-      } else {
-        const target = document.querySelector(`.strip-page[data-page="${idx}"]`);
-        if (target) target.scrollIntoView({ block: 'start' });
-      }
-    });
-  });
-}
-
 /* ---------- auto-scroll (solo modo tira) ---------- */
 
 function startAutoScroll() {
@@ -371,7 +345,6 @@ function bindSettingsPanel() {
     updatePref('showExtraPages', e.target.checked);
     currentPageIndex = 0;
     renderReader();
-    renderThumbDrawer();
   });
 
   document.getElementById('resetPrefs').addEventListener('click', () => {
@@ -437,12 +410,6 @@ async function init() {
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen().catch(() => {});
   });
-
-  document.getElementById('thumbToggle').addEventListener('click', () => {
-    const drawer = document.getElementById('thumbDrawer');
-    drawer.hidden = !drawer.hidden;
-  });
-  renderThumbDrawer();
 
   document.getElementById('scrollTopBtn').addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
