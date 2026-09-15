@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nekumi — Manhwa</title>
+<meta name="description" content="Manhwa en tira vertical, actualizado cada semana.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a href="index.html" class="brand">NEKU<span>MI</span></a>
+    <div class="search">
+      <input type="search" id="searchInput" placeholder="Buscar un título…" aria-label="Buscar manhwa">
+    </div>
+    <nav class="nav-links">
+      <a href="#novedades">Novedades</a>
+      <a href="#catalogo">Catálogo</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <h1>Historias que<br>no <em>terminan</em><br>al bajar.</h1>
+      <p>Manhwa organizado como se lee de verdad: en tira, de arriba hacia abajo, sin cortes de página. Elegí un título y seguí bajando.</p>
+      <a href="#catalogo" class="btn">Explorar catálogo</a>
+    </div>
+    <div class="strip" id="heroStrip" aria-hidden="true"></div>
+  </section>
+
+  <section class="wrap section" id="continuar" hidden>
+    <div class="section-head">
+      <h2>Seguir leyendo</h2>
+    </div>
+    <div class="shelf" id="continueShelf"></div>
+  </section>
+
+  <section class="wrap section" id="novedades">
+    <div class="section-head">
+      <h2>Recién actualizado</h2>
+      <span class="count" id="freshCount"></span>
+    </div>
+    <div class="grid" id="freshGrid"></div>
+  </section>
+
+  <section class="wrap section" id="catalogo">
+    <div class="section-head">
+      <h2>Catálogo completo</h2>
+      <span class="count" id="totalCount"></span>
+    </div>
+    <div class="chips" id="genreChips"></div>
+    <div class="chips" id="statusChips"></div>
+    <div class="grid" id="fullGrid"></div>
+    <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    Nekumi · catálogo generado automáticamente desde el repositorio.
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
