@@ -7,14 +7,15 @@ let CURRENT_MANGA = null;
 
 function chapterRowHTML(chap, manga, progress) {
   const isCurrent = progress && progress.chapterId === chap.id;
+  const read = isChapterRead(manga.id, chap.id);
   return `
-    <a class="chapter-row" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(chap.id)}">
+    <a class="chapter-row ${read ? 'is-read' : ''}" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(chap.id)}">
       <span class="chapter-num">${chap.number}</span>
       <div class="chapter-info">
         <h4>${escapeHtml(chap.title)}</h4>
         <p>${chap.pages_count} páginas</p>
       </div>
-      ${isCurrent ? '<span class="read-mark">Continuar acá</span>' : ''}
+      ${isCurrent ? '<span class="read-mark">Continuar acá</span>' : read ? '<span class="read-check" title="Ya leído">✓</span>' : ''}
     </a>
   `;
 }
