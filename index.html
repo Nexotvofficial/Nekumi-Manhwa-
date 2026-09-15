@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=9"></script>
+<script src="site-guard.js?v=10"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nekumi — Manhwa</title>
 <meta name="description" content="Manhwa en tira vertical, actualizado cada semana.">
 <link rel="canonical" href="https://nekutoon.com/index.html">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
+
+<!-- Barra de anuncio / aviso superior (estilo referencia) -->
+<div class="topbar-ad" id="topbarAd">
+  <div class="wrap topbar-ad-row">
+    <span class="topbar-ad-text">✦ Nuevo en Nekumi: seguí tu progreso en la nube iniciando sesión — gratis, sin cortes.</span>
+    <button class="topbar-ad-close" id="topbarAdClose" type="button" aria-label="Cerrar aviso">✕</button>
+  </div>
+</div>
 
 <header class="nav">
   <div class="wrap nav-row">
@@ -33,64 +41,106 @@
 </header>
 
 <main>
-  <section class="wrap hero">
-    <div class="hero-copy">
-      <span class="hero-eyebrow">Actualizado siempre · gratis · sin cortes</span>
-      <h1>Historias que<br>no <em>terminan</em><br>al bajar.</h1>
-      <p>Nada de tarjetas cortadas ni saltos raros: cada capítulo es una tira continua, tal como se dibuja. Elegí un título, apretá play con el dedo, y no soltás hasta el final.</p>
-      <div class="hero-stats" id="heroStats"></div>
-      <div class="hero-ctas">
-        <a href="#catalogo" class="btn">Explorar catálogo</a>
-      </div>
-    </div>
-    <div class="strip" id="heroStrip" aria-hidden="true"></div>
+  <!-- HERO CARRUSEL a todo lo ancho -->
+  <section class="hero-carousel" id="heroCarousel" aria-label="Destacados">
+    <div class="hero-slides" id="heroSlides"></div>
+    <button class="hero-arrow hero-prev" id="heroPrev" type="button" aria-label="Anterior">‹</button>
+    <button class="hero-arrow hero-next" id="heroNext" type="button" aria-label="Siguiente">›</button>
+    <div class="hero-dots" id="heroDots"></div>
   </section>
 
-  <!-- AD SLOT: reemplazá el contenido de #adSlotTop por tu código de AdSense u otra red.
-       El label "Publicidad" queda fijo arriba para cumplir con la transparencia que piden
-       la mayoría de las redes (y buenas prácticas / normativa de publicidad). -->
+  <!-- AD SLOT superior -->
   <div class="wrap ad-slot" id="adSlotTop">
     <span class="ad-label">Publicidad</span>
     <div class="ad-slot-body"><!-- tu <script> / <ins> de AdSense va aquí --></div>
   </div>
 
-  <section class="wrap section" id="continuar" hidden>
-    <div class="section-head">
-      <div>
-        <span class="section-eyebrow">Justo donde lo dejaste</span>
-        <h2>Seguir leyendo</h2>
-      </div>
-    </div>
-    <div class="shelf" id="continueShelf"></div>
-  </section>
+  <!-- CONTENIDO + SIDEBAR -->
+  <div class="wrap home-layout">
 
-  <section class="wrap section" id="novedades">
-    <div class="section-head">
-      <div>
-        <span class="section-eyebrow">Lo último que subió el repo</span>
-        <h2>Recién actualizado</h2>
-      </div>
-      <span class="count" id="freshCount"></span>
-    </div>
-    <div class="grid" id="freshGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
-  </section>
+    <div class="home-main">
 
-  <section class="wrap section section-alt" id="catalogo">
-    <div class="section-head">
-      <div>
-        <span class="section-eyebrow">Todo lo que hay, sin filtrar</span>
-        <h2>Catálogo completo</h2>
+      <section class="section" id="continuar" hidden>
+        <div class="section-head">
+          <div>
+            <span class="section-eyebrow">Justo donde lo dejaste</span>
+            <h2>Seguir leyendo</h2>
+          </div>
+        </div>
+        <div class="shelf" id="continueShelf"></div>
+      </section>
+
+      <!-- TRENDING con ranking -->
+      <section class="section" id="trending">
+        <div class="section-head">
+          <div>
+            <span class="section-eyebrow">Lo más caliente ahora</span>
+            <h2>🔥 Trending</h2>
+          </div>
+          <a class="section-link" href="#catalogo">Ver todo →</a>
+        </div>
+        <div class="trending-grid" id="trendingGrid">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- ÚLTIMAS ACTUALIZACIONES: lista con capítulos -->
+      <section class="section" id="novedades">
+        <div class="section-head">
+          <div>
+            <span class="section-eyebrow">Lo último que subió el repo</span>
+            <h2>Últimas actualizaciones</h2>
+          </div>
+          <span class="count" id="freshCount"></span>
+        </div>
+        <div class="latest-list" id="latestList">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- CATÁLOGO COMPLETO -->
+      <section class="section" id="catalogo">
+        <div class="section-head">
+          <div>
+            <span class="section-eyebrow">Todo lo que hay, sin filtrar</span>
+            <h2>Catálogo completo</h2>
+          </div>
+          <span class="count" id="totalCount"></span>
+        </div>
+        <div class="chips" id="genreChips"></div>
+        <div class="chips" id="statusChips"></div>
+        <div class="chips">
+          <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
+        </div>
+        <div class="grid" id="fullGrid">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+        <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
+      </section>
+
+    </div>
+
+    <!-- SIDEBAR: POPULARES + AD -->
+    <aside class="home-sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-head">
+          <h3>Populares</h3>
+        </div>
+        <div class="popular-tabs" id="popularTabs">
+          <button class="popular-tab active" data-tab="semana" type="button">Semana</button>
+          <button class="popular-tab" data-tab="mes" type="button">Mes</button>
+          <button class="popular-tab" data-tab="siempre" type="button">Siempre</button>
+        </div>
+        <ol class="popular-list" id="popularList"></ol>
       </div>
-      <span class="count" id="totalCount"></span>
-    </div>
-    <div class="chips" id="genreChips"></div>
-    <div class="chips" id="statusChips"></div>
-    <div class="chips">
-      <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
-    </div>
-    <div class="grid" id="fullGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
-    <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
-  </section>
+
+      <div class="sidebar-box ad-slot-sidebar">
+        <span class="ad-label">Publicidad</span>
+        <div class="ad-slot-body ad-slot-tall"><!-- anuncio vertical 300x600 --></div>
+      </div>
+    </aside>
+
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -104,12 +154,12 @@
   </div>
 </footer>
 
-<script src="data.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="data.js?v=10"></script>
+<script src="app.js?v=10"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js?v=9"></script>
+<script src="auth.js?v=10"></script>
 </body>
 </html>
