@@ -9,19 +9,24 @@ let onlyFavorites = false;
 let searchTerm = '';
 
 function cardHTML(manga) {
+  if (!manga || !manga.id) return '';
+  const chapters = manga.chapters || [];
   const sClass = statusClass(manga.status);
-  const badgeLabel = sClass === 'ongoing' ? 'En emisión' : sClass === 'finished' ? 'Finalizado' : manga.status;
+  const badgeLabel = sClass === 'ongoing' ? 'En emisión' : sClass === 'finished' ? 'Finalizado' : (manga.status || '');
   const fav = isFavorite(manga.id);
+  const isHot = Number(manga.rating) >= 4.5;
+  const cover = manga.cover_thumb || manga.cover || '';
   return `
     <div class="card">
       <a class="card-link" href="manga.html?id=${encodeURIComponent(manga.id)}">
         <div class="cover">
-          <img src="${escapeHtml(manga.cover_thumb || manga.cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">
+          ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">` : `<div class="cover-fallback">${escapeHtml((manga.title || '?').slice(0, 1))}</div>`}
           ${badgeLabel ? `<span class="badge ${sClass}">${escapeHtml(badgeLabel)}</span>` : ''}
+          ${isHot ? '<span class="hot-tag" title="Muy bien valorado">🔥</span>' : ''}
           ${manga.rating ? `<span class="rating">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
         </div>
-        <h3>${escapeHtml(manga.title)}</h3>
-        <p class="meta">${escapeHtml(manga.total_chapters ?? manga.chapters.length)} caps · ${escapeHtml(manga.category)}</p>
+        <h3>${escapeHtml(manga.title || 'Sin título')}</h3>
+        <p class="meta">${escapeHtml(manga.total_chapters ?? chapters.length)} caps · ${escapeHtml(manga.category || '')}</p>
       </a>
       <button class="fav-toggle ${fav ? 'active' : ''}" data-fav-id="${escapeHtml(manga.id)}" type="button" aria-label="Marcar como favorito" title="Favorito">${fav ? '♥' : '♡'}</button>
     </div>
@@ -36,8 +41,24 @@ function bindFavButtons(root) {
       const nowFav = toggleFavorite(id);
       btn.classList.toggle('active', nowFav);
       btn.textContent = nowFav ? '♥' : '♡';
+      showToast(nowFav ? 'Agregado a favoritos' : 'Quitado de favoritos', { icon: nowFav ? '♥' : '♡', duration: 1600 });
     });
   });
+}
+
+function renderHeroStats(list) {
+  const el = document.getElementById('heroStats');
+  if (!el) return;
+  const totalTitles = list.length;
+  const totalChapters = list.reduce((sum, m) => sum + (m.total_chapters ?? (m.chapters || []).length), 0);
+  const genreCount = collectGenres(list).length - 1; // -1 por "Todos"
+  const ongoing = list.filter((m) => statusClass(m.status) === 'ongoing').length;
+  el.innerHTML = `
+    <span class="stat-pill"><strong>${totalTitles}</strong> títulos</span>
+    <span class="stat-pill"><strong>${totalChapters}</strong> capítulos</span>
+    <span class="stat-pill"><strong>${ongoing}</strong> en emisión</span>
+    <span class="stat-pill"><strong>${genreCount}</strong> géneros</span>
+  `;
 }
 
 function renderHeroStrip(list) {
@@ -119,7 +140,7 @@ function applyFilters(list) {
     if (activeGenre !== 'Todos' && !(m.genres || []).includes(activeGenre)) return false;
     if (activeStatus !== 'Todos' && m.status !== activeStatus) return false;
     if (onlyFavorites && !isFavorite(m.id)) return false;
-    if (searchTerm && !m.title.toLowerCase().includes(searchTerm)) return false;
+    if (searchTerm && !(m.title || '').toLowerCase().includes(searchTerm)) return false;
     return true;
   });
 }
@@ -140,10 +161,17 @@ async function init() {
     document.querySelector('main').innerHTML = `
       <div class="wrap error-state">
         <h3>No pudimos cargar el catálogo</h3>
-        <p>Revisá que mangas.json exista en la raíz del sitio.</p>
+        <p>Puede ser algo momentáneo (el catálogo se está actualizando). Probá de nuevo en unos segundos.</p>
+        <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
       </div>`;
+    document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
     return;
   }
+
+  document.getElementById('surpriseBtn')?.addEventListener('click', () => {
+    const pick = pickRandomManga(CATALOG);
+    if (pick) window.location.href = `manga.html?id=${encodeURIComponent(pick.id)}`;
+  });
 
   const genres = collectGenres(CATALOG);
   const statuses = collectStatuses(CATALOG);
@@ -181,6 +209,7 @@ async function init() {
     document.querySelector('.nav').classList.toggle('menu-open');
   });
 
+  renderHeroStats(CATALOG);
   renderHeroStrip(CATALOG);
   renderContinue(CATALOG);
   renderFresh(CATALOG);
@@ -205,7 +234,7 @@ async function init() {
 function renderSearchSuggestions() {
   const box = document.getElementById('searchSuggestions');
   if (!searchTerm) { box.hidden = true; box.innerHTML = ''; return; }
-  const matches = CATALOG.filter((m) => m.title.toLowerCase().includes(searchTerm)).slice(0, 6);
+  const matches = CATALOG.filter((m) => (m.title || '').toLowerCase().includes(searchTerm)).slice(0, 6);
   if (matches.length === 0) { box.hidden = true; box.innerHTML = ''; return; }
   box.hidden = false;
   box.innerHTML = matches.map((m) => `
