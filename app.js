@@ -5,22 +5,39 @@
 let CATALOG = [];
 let activeGenre = 'Todos';
 let activeStatus = 'Todos';
+let onlyFavorites = false;
 let searchTerm = '';
 
 function cardHTML(manga) {
   const sClass = statusClass(manga.status);
   const badgeLabel = sClass === 'ongoing' ? 'En emisión' : sClass === 'finished' ? 'Finalizado' : manga.status;
+  const fav = isFavorite(manga.id);
   return `
-    <a class="card" href="manga.html?id=${encodeURIComponent(manga.id)}">
-      <div class="cover">
-        <img src="${escapeHtml(manga.cover_thumb || manga.cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">
-        ${badgeLabel ? `<span class="badge ${sClass}">${escapeHtml(badgeLabel)}</span>` : ''}
-        ${manga.rating ? `<span class="rating">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
-      </div>
-      <h3>${escapeHtml(manga.title)}</h3>
-      <p class="meta">${escapeHtml(manga.total_chapters ?? manga.chapters.length)} caps · ${escapeHtml(manga.category)}</p>
-    </a>
+    <div class="card">
+      <a class="card-link" href="manga.html?id=${encodeURIComponent(manga.id)}">
+        <div class="cover">
+          <img src="${escapeHtml(manga.cover_thumb || manga.cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">
+          ${badgeLabel ? `<span class="badge ${sClass}">${escapeHtml(badgeLabel)}</span>` : ''}
+          ${manga.rating ? `<span class="rating">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
+        </div>
+        <h3>${escapeHtml(manga.title)}</h3>
+        <p class="meta">${escapeHtml(manga.total_chapters ?? manga.chapters.length)} caps · ${escapeHtml(manga.category)}</p>
+      </a>
+      <button class="fav-toggle ${fav ? 'active' : ''}" data-fav-id="${escapeHtml(manga.id)}" type="button" aria-label="Marcar como favorito" title="Favorito">${fav ? '♥' : '♡'}</button>
+    </div>
   `;
+}
+
+function bindFavButtons(root) {
+  root.querySelectorAll('.fav-toggle').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = btn.dataset.favId;
+      const nowFav = toggleFavorite(id);
+      btn.classList.toggle('active', nowFav);
+      btn.textContent = nowFav ? '♥' : '♡';
+    });
+  });
 }
 
 function renderHeroStrip(list) {
@@ -61,11 +78,18 @@ function renderContinue(list) {
 }
 
 function renderFresh(list) {
+  const section = document.getElementById('novedades');
+  if (list.length <= MIN_TITLES_FOR_FRESH_SECTION) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
   const fresh = [...list]
     .sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated))
     .slice(0, 10);
   document.getElementById('freshGrid').innerHTML = fresh.map(cardHTML).join('');
   document.getElementById('freshCount').textContent = `${fresh.length} títulos`;
+  bindFavButtons(document.getElementById('freshGrid'));
 }
 
 function collectGenres(list) {
@@ -94,6 +118,7 @@ function applyFilters(list) {
   return list.filter((m) => {
     if (activeGenre !== 'Todos' && !(m.genres || []).includes(activeGenre)) return false;
     if (activeStatus !== 'Todos' && m.status !== activeStatus) return false;
+    if (onlyFavorites && !isFavorite(m.id)) return false;
     if (searchTerm && !m.title.toLowerCase().includes(searchTerm)) return false;
     return true;
   });
@@ -104,9 +129,11 @@ function renderFullGrid() {
   document.getElementById('fullGrid').innerHTML = filtered.map(cardHTML).join('');
   document.getElementById('totalCount').textContent = `${filtered.length} títulos`;
   document.getElementById('emptyState').hidden = filtered.length !== 0;
+  bindFavButtons(document.getElementById('fullGrid'));
 }
 
 async function init() {
+  if (!document.getElementById('heroStrip')) return; // no es la página de inicio
   try {
     CATALOG = await fetchCatalog();
   } catch (e) {
@@ -137,6 +164,23 @@ async function init() {
     });
   }
 
+  function refreshFavChip() {
+    const el = document.getElementById('favChip');
+    el.classList.toggle('active', onlyFavorites);
+    el.textContent = onlyFavorites ? '♥ Viendo solo favoritos' : '♡ Solo favoritos';
+  }
+
+  document.getElementById('favChip').addEventListener('click', () => {
+    onlyFavorites = !onlyFavorites;
+    refreshFavChip();
+    renderFullGrid();
+  });
+  refreshFavChip();
+
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.querySelector('.nav').classList.toggle('menu-open');
+  });
+
   renderHeroStrip(CATALOG);
   renderContinue(CATALOG);
   renderFresh(CATALOG);
@@ -147,7 +191,34 @@ async function init() {
   document.getElementById('searchInput').addEventListener('input', (e) => {
     searchTerm = e.target.value.trim().toLowerCase();
     renderFullGrid();
+    renderSearchSuggestions();
   });
+  document.getElementById('searchInput').addEventListener('focus', renderSearchSuggestions);
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search')) hideSearchSuggestions();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideSearchSuggestions();
+  });
+}
+
+function renderSearchSuggestions() {
+  const box = document.getElementById('searchSuggestions');
+  if (!searchTerm) { box.hidden = true; box.innerHTML = ''; return; }
+  const matches = CATALOG.filter((m) => m.title.toLowerCase().includes(searchTerm)).slice(0, 6);
+  if (matches.length === 0) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = matches.map((m) => `
+    <a class="suggestion" href="manga.html?id=${encodeURIComponent(m.id)}">
+      <img src="${escapeHtml(m.cover_thumb || m.cover)}" alt="" loading="lazy">
+      <span>${escapeHtml(m.title)}</span>
+    </a>
+  `).join('');
+}
+
+function hideSearchSuggestions() {
+  const box = document.getElementById('searchSuggestions');
+  box.hidden = true;
 }
 
 init();
