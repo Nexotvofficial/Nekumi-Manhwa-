@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js"></script>
+<script src="site-guard.js?v=9"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Leyendo — Nekumi</title>
 <link rel="canonical" href="https://nekutoon.com/reader.html">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body class="reader-mode">
 
@@ -15,7 +15,7 @@
 <div class="progress-rail"><span id="progressFill"></span></div>
 
 <div class="reader-topbar" id="topbar">
-  <a class="r-back" id="backLink" href="index.html">← Volver</a>
+  <a class="r-back" id="backLink" href="/">← Volver</a>
   <div class="r-title-block">
     <span class="r-title" id="readerTitle">Cargando…</span>
     <span class="r-pagecount" id="pageCounter"></span>
@@ -26,16 +26,17 @@
   <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
 </div>
 
+<div class="settings-backdrop" id="settingsBackdrop" hidden></div>
 <aside class="settings-drawer" id="settingsDrawer" hidden>
   <div class="settings-head">
-    <h3>Ajustes</h3>
+    <h3>⚙ Ajustes</h3>
     <button class="icon-btn" id="closeSettings" type="button" aria-label="Cerrar">✕</button>
   </div>
 
   <div class="settings-tabs" id="settingsTabs">
-    <button class="settings-tab active" data-tab="lectura" type="button">Lectura</button>
-    <button class="settings-tab" data-tab="pantalla" type="button">Pantalla</button>
-    <button class="settings-tab" data-tab="ayuda" type="button">Ayuda</button>
+    <button class="settings-tab active" data-tab="lectura" type="button"><span>📖</span> Lectura</button>
+    <button class="settings-tab" data-tab="pantalla" type="button"><span>🌓</span> Pantalla</button>
+    <button class="settings-tab" data-tab="ayuda" type="button"><span>?</span> Ayuda</button>
   </div>
 
   <div class="settings-tab-panel" data-tab-panel="lectura">
@@ -144,12 +145,12 @@
   <button id="nextBtn" type="button">Siguiente →</button>
 </div>
 
-<script src="data.js"></script>
-<script src="reader.js"></script>
+<script src="data.js?v=9"></script>
+<script src="reader.js?v=9"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js"></script>
+<script src="auth.js?v=9"></script>
 </body>
 </html>
