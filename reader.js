@@ -241,6 +241,18 @@ const READER_THEMES = {
   white:    { bg: '#F5F5F5', surface: '#F5F5F5' },
 };
 
+// Los <input type="range"> nativos no muestran "hasta dónde está lleno";
+// esto pinta el tramo recorrido con el color de acento vía --range-percent,
+// que style.css usa en un gradiente de fondo.
+function paintRangeFill(input) {
+  if (!input) return;
+  const min = Number(input.min) || 0;
+  const max = Number(input.max) || 100;
+  const val = Number(input.value);
+  const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+  input.style.setProperty('--range-percent', `${pct}%`);
+}
+
 function applyPrefsToDOM() {
   document.documentElement.style.setProperty('--reader-width', `${PREFS.width}px`);
   document.documentElement.style.setProperty('--reader-gap', `${PREFS.gap}px`);
@@ -269,6 +281,9 @@ function applyPrefsToDOM() {
   document.getElementById('gapRange').value = PREFS.gap;
   document.getElementById('dimRange').value = PREFS.dim;
   document.getElementById('autoScrollSpeed').value = PREFS.autoScrollSpeed;
+  paintRangeFill(document.getElementById('gapRange'));
+  paintRangeFill(document.getElementById('dimRange'));
+  paintRangeFill(document.getElementById('autoScrollSpeed'));
   document.getElementById('autoScrollToggle').checked = autoScrollActive;
   document.getElementById('pageCountToggle').checked = PREFS.showPageCount;
   document.getElementById('extraPagesToggle').checked = PREFS.showExtraPages;
@@ -282,8 +297,22 @@ function updatePref(key, value) {
 function bindSettingsPanel() {
   const drawer = document.getElementById('settingsDrawer');
 
-  document.getElementById('settingsBtn').addEventListener('click', () => { drawer.hidden = false; });
-  document.getElementById('closeSettings').addEventListener('click', () => { drawer.hidden = true; });
+  const backdrop = document.getElementById('settingsBackdrop');
+
+  document.getElementById('settingsBtn').addEventListener('click', () => {
+    drawer.hidden = false;
+    if (backdrop) backdrop.hidden = false;
+    requestAnimationFrame(() => drawer.classList.add('open'));
+  });
+  const closeDrawer = () => {
+    drawer.classList.remove('open');
+    setTimeout(() => {
+      drawer.hidden = true;
+      if (backdrop) backdrop.hidden = true;
+    }, 200);
+  };
+  document.getElementById('closeSettings').addEventListener('click', closeDrawer);
+  if (backdrop) backdrop.addEventListener('click', closeDrawer);
 
   document.getElementById('modeSegment').addEventListener('click', (e) => {
     const btn = e.target.closest('button');
@@ -324,14 +353,17 @@ function bindSettingsPanel() {
     });
   });
   document.getElementById('gapRange').addEventListener('input', (e) => {
+    paintRangeFill(e.target);
     updatePref('gap', Number(e.target.value));
     applyPrefsToDOM();
   });
   document.getElementById('dimRange').addEventListener('input', (e) => {
+    paintRangeFill(e.target);
     updatePref('dim', Number(e.target.value));
     applyPrefsToDOM();
   });
   document.getElementById('autoScrollSpeed').addEventListener('input', (e) => {
+    paintRangeFill(e.target);
     updatePref('autoScrollSpeed', Number(e.target.value));
   });
   document.getElementById('autoScrollToggle').addEventListener('change', (e) => {
@@ -359,6 +391,24 @@ function bindSettingsPanel() {
 /* ---------- inicialización ---------- */
 
 async function init() {
+  try {
+    await initReader();
+  } catch (e) {
+    console.error('[Nekumi] Error inesperado en el lector:', e);
+    const main = document.getElementById('readerMain');
+    if (main) {
+      main.innerHTML = `
+        <div class="error-state">
+          <h3>Algo salió mal cargando esta página</h3>
+          <p>Probá recargar. Si el problema sigue, avisanos.</p>
+          <button class="btn" id="retryLoadBtn" type="button">Recargar</button>
+        </div>`;
+      document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
+    }
+  }
+}
+
+async function initReader() {
   const mangaId = qs('id');
   const chapterId = qs('chap');
   let catalog;
@@ -370,15 +420,44 @@ async function init() {
   }
 
   MANGA = getMangaById(catalog, mangaId);
-  CHAPTER = MANGA ? getChapter(MANGA, chapterId) : null;
 
-  if (!MANGA || !CHAPTER) {
+  if (!MANGA) {
     document.getElementById('readerMain').innerHTML = `
       <div class="error-state">
-        <h3>No encontramos ese capítulo</h3>
-        <p><a class="btn ghost" href="index.html">Volver al catálogo</a></p>
+        <h3>No encontramos ese título</h3>
+        <p>Puede que el catálogo se haya reorganizado. Volvé a buscarlo desde el inicio.</p>
+        <p><a class="btn ghost" href="/">Volver al catálogo</a></p>
       </div>`;
     return;
+  }
+
+  CHAPTER = getChapter(MANGA, chapterId);
+
+  if (!CHAPTER) {
+    // El id de este capítulo puede haber cambiado en una actualización del
+    // repositorio (p. ej. se renombró la carpeta). En vez de dejar al lector
+    // en una página rota, lo llevamos al capítulo más cercano que sí exista.
+    const all = sortedChapters(MANGA, 'asc');
+    if (all.length === 0) {
+      document.getElementById('readerMain').innerHTML = `
+        <div class="error-state">
+          <h3>Este título todavía no tiene capítulos disponibles</h3>
+          <p><a class="btn ghost" href="manga.html?id=${encodeURIComponent(MANGA.id)}">Volver a la ficha</a></p>
+        </div>`;
+      return;
+    }
+    const requestedNum = Number((chapterId || '').match(/\d+/)?.[0]);
+    const fallback = (!Number.isNaN(requestedNum)
+      ? all.find((c) => c.number >= requestedNum) || all[all.length - 1]
+      : all[0]);
+    sessionStorage.setItem('nekumi_redirect_notice', '1');
+    window.location.replace(`reader.html?id=${encodeURIComponent(MANGA.id)}&chap=${encodeURIComponent(fallback.id)}`);
+    return;
+  }
+
+  if (sessionStorage.getItem('nekumi_redirect_notice')) {
+    sessionStorage.removeItem('nekumi_redirect_notice');
+    setTimeout(() => showToast('Ese enlace de capítulo cambió, te llevamos al más cercano', { icon: '↻', duration: 3200 }), 300);
   }
 
   document.title = `${CHAPTER.title} · ${MANGA.title} — Nekumi`;
@@ -420,8 +499,11 @@ async function init() {
   renderReader();
 
   window.addEventListener('keydown', (e) => {
-    if (document.getElementById('settingsDrawer').hidden === false && e.key === 'Escape') {
-      document.getElementById('settingsDrawer').hidden = true;
+    const drawer = document.getElementById('settingsDrawer');
+    if (drawer.hidden === false && e.key === 'Escape') {
+      drawer.classList.remove('open');
+      const backdrop = document.getElementById('settingsBackdrop');
+      setTimeout(() => { drawer.hidden = true; if (backdrop) backdrop.hidden = true; }, 200);
       return;
     }
     if (PREFS.mode === 'paged') {
