@@ -148,6 +148,52 @@ async function nekumiSignOut() {
   return fbAuth.signOut();
 }
 
+// Conseguí tu propia site key gratis en https://www.google.com/recaptcha/admin
+// (elegí reCAPTCHA v2 "Casilla no soy un robot") y reemplazá esto. Sin una key
+// válida el widget no va a aparecer y el modal avisa en consola.
+const RECAPTCHA_SITE_KEY = 'TU_SITE_KEY_DE_RECAPTCHA_AQUI';
+let recaptchaWidgetId = null;
+
+function loadRecaptchaScript() {
+  return new Promise((resolve) => {
+    if (window.grecaptcha) { resolve(); return; }
+    if (document.getElementById('recaptchaScript')) {
+      const check = setInterval(() => {
+        if (window.grecaptcha) { clearInterval(check); resolve(); }
+      }, 150);
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'recaptchaScript';
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    document.head.appendChild(script);
+  });
+}
+
+async function renderRecaptcha() {
+  if (RECAPTCHA_SITE_KEY.startsWith('TU_SITE_KEY')) {
+    console.warn('[Nekumi] Falta configurar RECAPTCHA_SITE_KEY en auth.js — el login funciona sin captcha por ahora.');
+    document.getElementById('authRecaptchaBox').innerHTML = '<p class="setting-hint">⚠ Falta configurar la site key de reCAPTCHA.</p>';
+    return;
+  }
+  await loadRecaptchaScript();
+  if (recaptchaWidgetId === null && window.grecaptcha) {
+    recaptchaWidgetId = window.grecaptcha.render('authRecaptchaBox', { sitekey: RECAPTCHA_SITE_KEY, theme: 'dark' });
+  }
+}
+
+function recaptchaSolved() {
+  if (RECAPTCHA_SITE_KEY.startsWith('TU_SITE_KEY')) return true; // sin key configurada, no bloqueamos el login
+  return Boolean(window.grecaptcha && recaptchaWidgetId !== null && window.grecaptcha.getResponse(recaptchaWidgetId));
+}
+
+function resetRecaptcha() {
+  if (window.grecaptcha && recaptchaWidgetId !== null) window.grecaptcha.reset(recaptchaWidgetId);
+}
+
 /* ---------- interfaz de cuenta (inyectada en todas las páginas) ---------- */
 
 function buildAuthModal() {
@@ -172,10 +218,12 @@ function buildAuthModal() {
       </form>
       <div class="auth-modal-divider"><span>o</span></div>
       <button type="button" class="btn ghost auth-google-btn" id="authGoogleBtn">Continuar con Google</button>
+      <div id="authRecaptchaBox" class="auth-recaptcha"></div>
       <p class="auth-modal-error" id="authModalError" hidden></p>
     </div>
   `;
   document.body.appendChild(modal);
+  renderRecaptcha();
 
   const close = () => { modal.hidden = true; };
   document.getElementById('authModalBackdrop').addEventListener('click', close);
@@ -189,6 +237,7 @@ function buildAuthModal() {
 
   document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!recaptchaSolved()) { showError('Confirmá el captcha antes de continuar.'); return; }
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     try {
@@ -196,10 +245,12 @@ function buildAuthModal() {
       close();
     } catch (err) {
       showError(traduceErrorFirebase(err));
+      resetRecaptcha();
     }
   });
 
   document.getElementById('authSignUpBtn').addEventListener('click', async () => {
+    if (!recaptchaSolved()) { showError('Confirmá el captcha antes de continuar.'); return; }
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     try {
@@ -207,6 +258,7 @@ function buildAuthModal() {
       close();
     } catch (err) {
       showError(traduceErrorFirebase(err));
+      resetRecaptcha();
     }
   });
 
