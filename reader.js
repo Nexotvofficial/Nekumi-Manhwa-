@@ -35,9 +35,17 @@ function toggleChromeOnScroll() {
   const y = window.scrollY;
   const goingDown = y > lastScrollY && y > 80;
   const topbar = document.getElementById('topbar');
+  const bottombar = document.getElementById('bottombar');
 
-  if (goingDown && !topbarHidden) { topbar.classList.add('hidden'); topbarHidden = true; }
-  else if (!goingDown && topbarHidden) { topbar.classList.remove('hidden'); topbarHidden = false; }
+  if (goingDown && !topbarHidden) {
+    topbar.classList.add('hidden');
+    bottombar.classList.add('hidden');
+    topbarHidden = true;
+  } else if (!goingDown && topbarHidden) {
+    topbar.classList.remove('hidden');
+    bottombar.classList.remove('hidden');
+    topbarHidden = false;
+  }
   lastScrollY = y;
 
   updateProgressFromScroll();
@@ -178,6 +186,11 @@ function setPageCounter(current, total) {
 
 function renderReader() {
   stopAutoScroll();
+  window.removeEventListener('scroll', toggleChromeOnScroll);
+  document.getElementById('topbar').classList.remove('hidden');
+  document.getElementById('bottombar').classList.remove('hidden');
+  topbarHidden = false;
+  lastScrollY = 0;
   if (PREFS.mode === 'paged') {
     renderPagedMode();
   } else {
@@ -260,6 +273,9 @@ function applyPrefsToDOM() {
   document.getElementById('directionBlock').hidden = PREFS.mode !== 'paged';
 
   document.getElementById('widthValue').textContent = `${PREFS.width}%`;
+  document.querySelectorAll('#widthPresets button').forEach((b) => {
+    b.classList.toggle('active', Number(b.dataset.value) === PREFS.width);
+  });
   document.getElementById('gapValue').textContent = `${PREFS.gap}px`;
   document.getElementById('dimValue').textContent = `${PREFS.dim}%`;
   document.getElementById('widthRange').value = PREFS.width;
@@ -308,6 +324,21 @@ function bindSettingsPanel() {
     updatePref('width', Number(e.target.value));
     applyPrefsToDOM();
   });
+  document.getElementById('widthPresets').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    updatePref('width', Number(btn.dataset.value));
+    applyPrefsToDOM();
+  });
+  document.getElementById('settingsTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.settings-tab');
+    if (!btn) return;
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.settings-tab').forEach((b) => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.settings-tab-panel').forEach((p) => {
+      p.hidden = p.dataset.tabPanel !== tab;
+    });
+  });
   document.getElementById('gapRange').addEventListener('input', (e) => {
     updatePref('gap', Number(e.target.value));
     applyPrefsToDOM();
@@ -328,7 +359,7 @@ function bindSettingsPanel() {
   });
 
   document.getElementById('resetPrefs').addEventListener('click', () => {
-    PREFS = { ...DEFAULT_READER_PREFS };
+    PREFS = defaultReaderPrefsForDevice();
     saveReaderPrefs(PREFS);
     applyPrefsToDOM();
     currentPageIndex = 0;
