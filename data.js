@@ -24,6 +24,16 @@ const DEFAULT_READER_PREFS = {
   showPageCount: true,
 };
 
+// En pantallas grandes, una tira al 100% se ve exageradamente ancha;
+// en celular, 100% es lo natural. Este es el punto de partida antes
+// de que el lector la ajuste manualmente (queda guardado por separado).
+function defaultReaderPrefsForDevice() {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(min-width: 1000px)').matches
+    : false;
+  return { ...DEFAULT_READER_PREFS, width: isDesktop ? 70 : 100 };
+}
+
 async function fetchCatalog() {
   const res = await fetch(CATALOG_URL, { cache: 'no-store' });
   if (!res.ok) throw new Error('No se pudo cargar el catálogo');
@@ -135,10 +145,11 @@ function getAllProgress() {
 
 function readReaderPrefs() {
   try {
-    const raw = JSON.parse(localStorage.getItem(READER_PREFS_KEY) || '{}');
-    return { ...DEFAULT_READER_PREFS, ...raw };
+    const stored = localStorage.getItem(READER_PREFS_KEY);
+    if (!stored) return defaultReaderPrefsForDevice();
+    return { ...DEFAULT_READER_PREFS, ...JSON.parse(stored) };
   } catch {
-    return { ...DEFAULT_READER_PREFS };
+    return defaultReaderPrefsForDevice();
   }
 }
 
