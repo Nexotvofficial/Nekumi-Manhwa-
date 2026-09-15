@@ -21,7 +21,7 @@
   --display: 'League Gothic', 'Arial Narrow', sans-serif;
   --body: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --radius: 3px;
-  --container: 1180px;
+  --container: 1320px;
 }
 
 *{ box-sizing: border-box; }
