@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favoritos — Nekumi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a href="index.html" class="brand">NEKU<span>MI</span></a>
+    <nav class="nav-links">
+      <a href="index.html#novedades">Novedades</a>
+      <a href="index.html#catalogo">Catálogo</a>
+      <a href="favorites.html" class="current">Favoritos</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
+  </div>
+  <div class="nav-mobile">
+    <a href="index.html#novedades">Novedades</a>
+    <a href="index.html#catalogo">Catálogo</a>
+    <a href="favorites.html">Favoritos</a>
+  </div>
+</header>
+
+<main class="wrap section">
+  <div class="section-head">
+    <h2>Tus favoritos</h2>
+    <span class="count" id="favCount"></span>
+  </div>
+  <div class="grid" id="favGrid"></div>
+  <p class="empty-state" id="favEmpty" hidden>Todavía no marcaste ningún título con ♡. Los favoritos se guardan en este navegador.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">Nekumi · catálogo generado automáticamente desde el repositorio.</div>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js" defer></script>
+<script>
+  window.addEventListener('load', async () => {
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.querySelector('.nav').classList.toggle('menu-open');
+    });
+    let catalog = [];
+    try { catalog = await fetchCatalog(); } catch { catalog = []; }
+    const favs = readFavorites();
+    const items = catalog.filter((m) => favs.includes(m.id));
+    document.getElementById('favCount').textContent = `${items.length} títulos`;
+    document.getElementById('favEmpty').hidden = items.length !== 0;
+    document.getElementById('favGrid').innerHTML = items.map(cardHTML).join('');
+    bindFavButtons(document.getElementById('favGrid'));
+    document.getElementById('favGrid').addEventListener('click', (e) => {
+      if (e.target.closest('.fav-toggle')) {
+        setTimeout(() => {
+          const stillFav = readFavorites();
+          document.getElementById('favGrid').innerHTML = items
+            .filter((m) => stillFav.includes(m.id))
+            .map(cardHTML).join('');
+          bindFavButtons(document.getElementById('favGrid'));
+        }, 0);
+      }
+    });
+  });
+</script>
+</body>
+</html>
