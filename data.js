@@ -15,23 +15,30 @@ const MIN_TITLES_FOR_FRESH_SECTION = 3;
 
 const DEFAULT_READER_PREFS = {
   mode: 'strip',          // 'strip' | 'paged'
-  width: 100,             // % de ancho de la tira / zoom en modo paginado
+  width: 760,             // ancho máx. de la tira / página, en px (ver .strip-pages / .paged-page)
   gap: 0,                 // separación entre páginas (modo tira)
   direction: 'ltr',       // 'ltr' | 'rtl' (modo paginado)
   dim: 0,                 // atenuar pantalla (0-70)
   theme: 'black',         // 'black' | 'charcoal' | 'sepia' | 'white'
   autoScrollSpeed: 40,
   showPageCount: true,
+  showExtraPages: false,  // páginas de créditos/publicidad insertadas por el scan
 };
 
-// En pantallas grandes, una tira al 100% se ve exageradamente ancha;
-// en celular, 100% es lo natural. Este es el punto de partida antes
-// de que el lector la ajuste manualmente (queda guardado por separado).
 function defaultReaderPrefsForDevice() {
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia
-    ? window.matchMedia('(min-width: 1000px)').matches
-    : false;
-  return { ...DEFAULT_READER_PREFS, width: isDesktop ? 70 : 100 };
+  // El ancho ahora es en px y se combina con min(100%, Npx) en el CSS, así que
+  // el mismo valor por defecto ya se ve bien tanto en celular como en escritorio.
+  return { ...DEFAULT_READER_PREFS };
+}
+
+// Cada "page" del capítulo puede ser un string (url) o, si el generador detectó
+// que es una página de créditos/publicidad del scan, un objeto {url, extra:true}.
+function pageUrl(page) {
+  return typeof page === 'string' ? page : page.url;
+}
+
+function pageIsExtra(page) {
+  return typeof page === 'string' ? false : Boolean(page.extra);
 }
 
 async function fetchCatalog() {
