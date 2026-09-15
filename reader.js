@@ -74,14 +74,26 @@ function toggleScrollTopBtn(y) {
   btn.hidden = y < 900;
 }
 
+/* ---------- páginas visibles (oculta créditos/publicidad por defecto) ---------- */
+
+function getVisiblePages() {
+  if (!CHAPTER) return [];
+  if (PREFS.showExtraPages) return CHAPTER.pages;
+  const filtered = CHAPTER.pages.filter((p) => !pageIsExtra(p));
+  // si por error TODAS las páginas quedaran marcadas como extra, no dejamos
+  // el capítulo vacío: se muestran igual.
+  return filtered.length > 0 ? filtered : CHAPTER.pages;
+}
+
 /* ---------- render: modo tira continua ---------- */
 
 function renderStripMode() {
   const el = document.getElementById('readerMain');
   const { next } = neighbourChapters(MANGA, CHAPTER.id);
+  const pages = getVisiblePages();
 
-  const pagesHTML = CHAPTER.pages
-    .map((url, i) => `<img class="strip-page" data-page="${i}" src="${escapeHtml(url)}" alt="Página ${i + 1}" loading="${i < 2 ? 'eager' : 'lazy'}">`)
+  const pagesHTML = pages
+    .map((p, i) => `<img class="strip-page" data-page="${i}" src="${escapeHtml(pageUrl(p))}" alt="Página ${i + 1}" loading="${i < 2 ? 'eager' : 'lazy'}">`)
     .join('');
 
   el.innerHTML = `
@@ -113,7 +125,7 @@ function setupPageObserver() {
 
 function renderPagedMode() {
   const el = document.getElementById('readerMain');
-  const total = CHAPTER.pages.length;
+  const total = getVisiblePages().length;
   currentPageIndex = Math.min(currentPageIndex, total - 1);
 
   el.innerHTML = `
@@ -131,9 +143,10 @@ function renderPagedMode() {
 }
 
 function renderPagedImage() {
-  const total = CHAPTER.pages.length;
+  const pages = getVisiblePages();
+  const total = pages.length;
   const img = document.getElementById('pagedImg');
-  img.src = CHAPTER.pages[currentPageIndex];
+  img.src = pageUrl(pages[currentPageIndex]);
   img.alt = `Página ${currentPageIndex + 1}`;
   setPageCounter(currentPageIndex + 1, total);
   updateProgressFromPage(currentPageIndex, total);
@@ -142,7 +155,7 @@ function renderPagedImage() {
 function stepPage(dir) {
   // en modo rtl, el sentido visual de "siguiente" se invierte
   const realDir = PREFS.direction === 'rtl' ? -dir : dir;
-  const total = CHAPTER.pages.length;
+  const total = getVisiblePages().length;
   const target = currentPageIndex + realDir;
 
   if (target < 0) {
@@ -202,9 +215,10 @@ function renderReader() {
 
 function renderThumbDrawer() {
   const drawer = document.getElementById('thumbDrawer');
-  drawer.innerHTML = CHAPTER.pages.map((url, i) => `
+  const pages = getVisiblePages();
+  drawer.innerHTML = pages.map((p, i) => `
     <button class="thumb" data-page="${i}" type="button">
-      <img src="${escapeHtml(url)}" alt="" loading="lazy">
+      <img src="${escapeHtml(pageUrl(p))}" alt="" loading="lazy">
       <span>${i + 1}</span>
     </button>
   `).join('');
@@ -254,7 +268,7 @@ const READER_THEMES = {
 };
 
 function applyPrefsToDOM() {
-  document.documentElement.style.setProperty('--reader-width', `${PREFS.width}%`);
+  document.documentElement.style.setProperty('--reader-width', `${PREFS.width}px`);
   document.documentElement.style.setProperty('--reader-gap', `${PREFS.gap}px`);
   document.getElementById('dimOverlay').style.opacity = PREFS.dim / 100;
 
@@ -267,23 +281,23 @@ function applyPrefsToDOM() {
   document.querySelectorAll('#themeSegment button').forEach((b) => b.classList.toggle('active', b.dataset.value === PREFS.theme));
 
   document.getElementById('widthBlock').hidden = false;
-  document.getElementById('widthLabel').firstChild.textContent = PREFS.mode === 'strip' ? 'Ancho de la tira ' : 'Zoom de página ';
+  document.getElementById('widthLabel').firstChild.textContent = PREFS.mode === 'strip' ? 'Ancho de la tira ' : 'Ancho de página ';
   document.getElementById('gapBlock').hidden = PREFS.mode !== 'strip';
   document.getElementById('autoScrollBlock').hidden = PREFS.mode !== 'strip';
   document.getElementById('directionBlock').hidden = PREFS.mode !== 'paged';
 
-  document.getElementById('widthValue').textContent = `${PREFS.width}%`;
+  document.getElementById('widthValue').textContent = `${PREFS.width}px`;
   document.querySelectorAll('#widthPresets button').forEach((b) => {
     b.classList.toggle('active', Number(b.dataset.value) === PREFS.width);
   });
   document.getElementById('gapValue').textContent = `${PREFS.gap}px`;
   document.getElementById('dimValue').textContent = `${PREFS.dim}%`;
-  document.getElementById('widthRange').value = PREFS.width;
   document.getElementById('gapRange').value = PREFS.gap;
   document.getElementById('dimRange').value = PREFS.dim;
   document.getElementById('autoScrollSpeed').value = PREFS.autoScrollSpeed;
   document.getElementById('autoScrollToggle').checked = autoScrollActive;
   document.getElementById('pageCountToggle').checked = PREFS.showPageCount;
+  document.getElementById('extraPagesToggle').checked = PREFS.showExtraPages;
 }
 
 function updatePref(key, value) {
@@ -320,10 +334,6 @@ function bindSettingsPanel() {
     applyPrefsToDOM();
   });
 
-  document.getElementById('widthRange').addEventListener('input', (e) => {
-    updatePref('width', Number(e.target.value));
-    applyPrefsToDOM();
-  });
   document.getElementById('widthPresets').addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
@@ -355,7 +365,13 @@ function bindSettingsPanel() {
   });
   document.getElementById('pageCountToggle').addEventListener('change', (e) => {
     updatePref('showPageCount', e.target.checked);
-    setPageCounter(currentPageIndex + 1, CHAPTER.pages.length);
+    setPageCounter(currentPageIndex + 1, getVisiblePages().length);
+  });
+  document.getElementById('extraPagesToggle').addEventListener('change', (e) => {
+    updatePref('showExtraPages', e.target.checked);
+    currentPageIndex = 0;
+    renderReader();
+    renderThumbDrawer();
   });
 
   document.getElementById('resetPrefs').addEventListener('click', () => {
