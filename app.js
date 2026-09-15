@@ -1,7 +1,5 @@
 /* ============================================================
-   NEKUMI v11 — página de inicio
-   Hero carrusel + Trending rankeado + Últimas actualizaciones
-   + Sidebar de Populares con pestañas.
+   NEKUMI v12 — página de inicio (fix skeletons + populares)
    ============================================================ */
 
 let CATALOG = [];
@@ -55,10 +53,11 @@ function bindFavButtons(root) {
   });
 }
 
-/* ---------- tiempo relativo ---------- */
+/* ---------- fechas ---------- */
 
 function parseNekumiDate(dateStr) {
-  return new Date(String(dateStr || '').replace(' UTC', 'Z').replace(' ', 'T'));
+  const d = new Date(String(dateStr || '').replace(' UTC', 'Z').replace(' ', 'T'));
+  return isNaN(d.getTime()) ? new Date(0) : d;
 }
 
 function timeAgo(dateStr) {
@@ -135,13 +134,23 @@ function renderHero(list) {
     .slice(0, 6);
   if (HERO_PICKS.length === 0) { document.getElementById('heroCarousel').hidden = true; return; }
   box.innerHTML = HERO_PICKS.map(heroSlideHTML).join('');
-  document.getElementById('heroDots').innerHTML = HERO_PICKS
+
+  const dots = document.getElementById('heroDots');
+  const prev = document.getElementById('heroPrev');
+  const next = document.getElementById('heroNext');
+  dots.innerHTML = HERO_PICKS
     .map((_, i) => `<button class="hero-dot ${i === 0 ? 'active' : ''}" data-slide="${i}" type="button" aria-label="Ir al destacado ${i + 1}"></button>`)
     .join('');
 
-  document.getElementById('heroPrev').addEventListener('click', () => { goToSlide(heroIndex - 1); restartHeroTimer(); });
-  document.getElementById('heroNext').addEventListener('click', () => { goToSlide(heroIndex + 1); restartHeroTimer(); });
-  document.getElementById('heroDots').addEventListener('click', (e) => {
+  // con una sola slide no hay nada que rotar: ocultamos flechas/puntos
+  const single = HERO_PICKS.length <= 1;
+  prev.hidden = single;
+  next.hidden = single;
+  dots.hidden = single;
+
+  prev.addEventListener('click', () => { goToSlide(heroIndex - 1); restartHeroTimer(); });
+  next.addEventListener('click', () => { goToSlide(heroIndex + 1); restartHeroTimer(); });
+  dots.addEventListener('click', (e) => {
     const dot = e.target.closest('.hero-dot');
     if (dot) { goToSlide(Number(dot.dataset.slide)); restartHeroTimer(); }
   });
@@ -203,27 +212,52 @@ function renderLatest(list) {
   document.getElementById('freshCount').textContent = `${fresh.length} títulos`;
 }
 
-/* ---------- Sidebar populares ---------- */
+/* ---------- Sidebar populares (v12: pestañas que sí se diferencian) ---------- */
+
+const POPULAR_TABS = {
+  semana:  { label: 'Semana',  hint: 'Los actualizados más recientemente' },
+  mes:     { label: 'Mes',     hint: 'Los mejor valorados del catálogo' },
+  siempre: { label: 'Siempre', hint: 'Rating + trayectoria (capítulos)' },
+};
 
 function popularSorted(tab) {
   const list = [...CATALOG];
   if (tab === 'semana') {
     return list.sort((a, b) =>
-      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated)) || ((b.rating || 0) - (a.rating || 0))
+      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated)) ||
+      ((b.rating || 0) - (a.rating || 0)) ||
+      ((b.total_chapters || 0) - (a.total_chapters || 0))
     ).slice(0, 10);
   }
   if (tab === 'mes') {
-    return list.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+    return list.sort((a, b) =>
+      ((b.rating || 0) - (a.rating || 0)) ||
+      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated))
+    ).slice(0, 10);
   }
   return list.sort((a, b) =>
-    ((b.rating || 0) * 10 + (b.total_chapters || 0)) - ((a.rating || 0) * 10 + (a.total_chapters || 0))
+    (((b.rating || 0) * 10) + (b.total_chapters || 0)) - (((a.rating || 0) * 10) + (a.total_chapters || 0))
   ).slice(0, 10);
+}
+
+// qué mostrar debajo del título según la pestaña activa, para que se note
+// que el orden realmente cambia
+function popularMetaHTML(m, tab) {
+  if (tab === 'semana') return escapeHtml(timeAgo(m.last_updated) || 'reciente');
+  if (tab === 'mes') return m.rating ? `★ ${Number(m.rating).toFixed(1)}` : 'Sin votos todavía';
+  const caps = m.total_chapters ?? (m.chapters || []).length;
+  return `${m.rating ? `★ ${Number(m.rating).toFixed(1)} · ` : ''}${caps} capítulos`;
 }
 
 function renderPopular() {
   const el = document.getElementById('popularList');
   if (!el) return;
-  el.innerHTML = popularSorted(popularTab).map((m, i) => `
+  const items = popularSorted(popularTab);
+  if (items.length === 0) {
+    el.innerHTML = '<li class="popular-empty">Todavía no hay títulos para rankear.</li>';
+    return;
+  }
+  el.innerHTML = items.map((m, i) => `
     <li class="popular-item">
       <span class="popular-rank ${i < 3 ? 'top' : ''}">${i + 1}</span>
       <a class="popular-cover" href="manga.html?id=${encodeURIComponent(m.id)}">
@@ -231,10 +265,12 @@ function renderPopular() {
       </a>
       <div class="popular-info">
         <a class="popular-title" href="manga.html?id=${encodeURIComponent(m.id)}">${escapeHtml(m.title || 'Sin título')}</a>
-        <span class="popular-meta">${m.rating ? `★ ${Number(m.rating).toFixed(1)} · ` : ''}${escapeHtml((m.genres || []).slice(0, 2).join(', '))}</span>
+        <span class="popular-meta">${popularMetaHTML(m, popularTab)}</span>
       </div>
     </li>
-  `).join('');
+  `).join('') + `
+    <li class="popular-hint">${escapeHtml(POPULAR_TABS[popularTab].hint)}</li>
+  `;
 }
 
 function bindPopularTabs() {
@@ -277,7 +313,7 @@ function renderContinue(list) {
   }).join('');
 }
 
-/* ---------- Catálogo: chips + grid ---------- */
+/* ---------- Catálogo ---------- */
 
 function collectGenres(list) {
   const set = new Set();
@@ -334,21 +370,39 @@ function initTopbarAd() {
   });
 }
 
+/* ---------- carga del catálogo con timeout ---------- */
+
+function fetchCatalogWithTimeout(ms) {
+  return Promise.race([
+    fetchCatalog(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
+function renderLoadError() {
+  ['heroCarousel'].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  const main = document.querySelector('.home-main');
+  if (main) {
+    main.innerHTML = `
+      <div class="error-state">
+        <h3>No pudimos cargar el catálogo</h3>
+        <p>Puede ser algo momentáneo (el catálogo se está actualizando o el CDN está lento). Probá de nuevo.</p>
+        <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
+      </div>`;
+    document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
+  }
+}
+
 /* ---------- init ---------- */
 
 async function init() {
   if (!document.getElementById('heroSlides')) return;
   initTopbarAd();
   try {
-    CATALOG = await fetchCatalog();
+    CATALOG = await fetchCatalogWithTimeout(12000);
   } catch (e) {
-    document.querySelector('main').innerHTML = `
-      <div class="wrap error-state">
-        <h3>No pudimos cargar el catálogo</h3>
-        <p>Puede ser algo momentáneo (el catálogo se está actualizando). Probá de nuevo en unos segundos.</p>
-        <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
-      </div>`;
-    document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
+    console.warn('[Nekumi] Falló la carga del catálogo:', e);
+    renderLoadError();
     return;
   }
 
