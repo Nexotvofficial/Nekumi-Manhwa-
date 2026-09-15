@@ -1,22 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=11"></script>
+<script src="site-guard.js?v=10"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nekumi — Manhwa</title>
+<title>Nekumi — Manhwa en tira vertical</title>
 <meta name="description" content="Manhwa en tira vertical, actualizado cada semana.">
 <link rel="canonical" href="https://nekutoon.com/index.html">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="home.css?v=10">
 </head>
 <body>
-
-<div class="topbar-ad" id="topbarAd">
-  <div class="wrap topbar-ad-row">
-    <span class="topbar-ad-text">✦ Nuevo: guardá tus favoritos y tu progreso en la nube — gratis, sin cortes.</span>
-    <button class="topbar-ad-close" id="topbarAdClose" type="button" aria-label="Cerrar aviso">✕</button>
-  </div>
-</div>
 
 <header class="nav">
   <div class="wrap nav-row">
@@ -26,107 +20,127 @@
       <div class="search-suggestions" id="searchSuggestions" hidden></div>
     </div>
     <nav class="nav-links">
-      <a href="#novedades">Novedades</a>
+      <a href="#tendencias">Tendencias</a>
+      <a href="#actualizaciones">Actualizaciones</a>
       <a href="#catalogo">Catálogo</a>
       <a href="favorites.html">Favoritos</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
   </div>
   <div class="nav-mobile">
-    <a href="#novedades">Novedades</a>
+    <a href="#tendencias">Tendencias</a>
+    <a href="#actualizaciones">Actualizaciones</a>
     <a href="#catalogo">Catálogo</a>
     <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
 <main>
-  <section class="hero-carousel" id="heroCarousel" aria-label="Destacados">
-    <div class="hero-slides" id="heroSlides"></div>
-    <button class="hero-arrow hero-prev" id="heroPrev" type="button" aria-label="Anterior">‹</button>
-    <button class="hero-arrow hero-next" id="heroNext" type="button" aria-label="Siguiente">›</button>
-    <div class="hero-dots" id="heroDots"></div>
+
+  <!-- ================= Portada / destacado ================= -->
+  <section class="spotlight" id="spotlight" aria-label="Título destacado">
+    <div class="spot-backdrop" id="spotBackdrop" aria-hidden="true"></div>
+    <div class="wrap spot-inner">
+      <div class="spot-copy" id="spotCopy">
+        <div class="spot-skeleton"></div>
+      </div>
+      <a class="spot-cover" id="spotCover" href="#" aria-hidden="true" tabindex="-1"></a>
+    </div>
+
+    <div class="spot-rail-wrap">
+      <button class="rail-arrow left" id="spotPrev" type="button" aria-label="Destacado anterior">‹</button>
+      <div class="wrap">
+        <ul class="spot-rail" id="spotRail" aria-label="Elegir destacado"></ul>
+      </div>
+      <button class="rail-arrow right" id="spotNext" type="button" aria-label="Destacado siguiente">›</button>
+    </div>
   </section>
 
+  <!-- AD SLOT: reemplazá el contenido de #adSlotTop por tu código de AdSense u otra red. -->
   <div class="wrap ad-slot" id="adSlotTop">
     <span class="ad-label">Publicidad</span>
-    <div class="ad-slot-body"><!-- tu código de AdSense va aquí --></div>
+    <div class="ad-slot-body"><!-- tu <script> / <ins> de AdSense va aquí --></div>
   </div>
 
-  <div class="wrap home-layout">
+  <section class="wrap section" id="continuar" hidden>
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Justo donde lo dejaste</span>
+        <h2>Seguir leyendo</h2>
+      </div>
+    </div>
+    <div class="shelf" id="continueShelf"></div>
+  </section>
+
+  <!-- ================= Cuerpo en dos columnas ================= -->
+  <div class="wrap home-cols">
+
     <div class="home-main">
 
-      <section class="section" id="continuar" hidden>
-        <div class="section-head">
-          <div>
-            <span class="section-eyebrow">Justo donde lo dejaste</span>
-            <h2>Seguir leyendo</h2>
+      <section class="panel" id="tendencias">
+        <div class="panel-head">
+          <h2>Tendencias</h2>
+          <div class="panel-tools">
+            <button class="rail-btn" id="trendPrev" type="button" aria-label="Ver anteriores">‹</button>
+            <button class="rail-btn" id="trendNext" type="button" aria-label="Ver siguientes">›</button>
+            <a class="panel-link" href="#catalogo">Ver todo</a>
           </div>
         </div>
-        <div class="shelf" id="continueShelf"></div>
-      </section>
-
-      <section class="section" id="trending">
-        <div class="section-head">
-          <div>
-            <span class="section-eyebrow">Lo más caliente ahora</span>
-            <h2>🔥 Trending</h2>
-          </div>
-          <a class="section-link" href="#catalogo">Ver todo →</a>
-        </div>
-        <div class="trending-grid" id="trendingGrid">
+        <div class="rail" id="trendRail">
           <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
         </div>
       </section>
 
-      <section class="section" id="novedades">
-        <div class="section-head">
-          <div>
-            <span class="section-eyebrow">Lo último que subió el repo</span>
-            <h2>Últimas actualizaciones</h2>
-          </div>
-          <span class="count" id="freshCount"></span>
+      <section class="panel" id="actualizaciones">
+        <div class="panel-head">
+          <h2>Últimas actualizaciones</h2>
+          <span class="panel-note" id="updatesNote"></span>
         </div>
-        <div class="latest-list" id="latestList">
-          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
-        </div>
+        <ul class="update-list" id="updateList"></ul>
       </section>
 
-      <section class="section" id="catalogo">
-        <div class="section-head">
-          <div>
-            <span class="section-eyebrow">Todo lo que hay, sin filtrar</span>
-            <h2>Catálogo completo</h2>
-          </div>
-          <span class="count" id="totalCount"></span>
+      <section class="panel" id="catalogo">
+        <div class="panel-head">
+          <h2>Catálogo completo</h2>
+          <span class="panel-note" id="totalCount"></span>
         </div>
-        <div class="chips" id="genreChips"></div>
-        <div class="chips" id="statusChips"></div>
-        <div class="chips">
-          <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
+        <div class="filters">
+          <div class="chips" id="genreChips"></div>
+          <div class="chips" id="statusChips"></div>
+          <div class="chips">
+            <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
+          </div>
         </div>
         <div class="grid" id="fullGrid">
           <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
         </div>
-        <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
+        <p class="empty-state" id="emptyState" hidden>No hay títulos con esos filtros. Quitá alguno y probá otra vez.</p>
       </section>
 
     </div>
 
-    <aside class="home-sidebar">
-      <div class="sidebar-box">
-        <div class="sidebar-head"><h3>Populares</h3></div>
-        <div class="popular-tabs" id="popularTabs">
-          <button class="popular-tab active" data-tab="semana" type="button">Semana</button>
-          <button class="popular-tab" data-tab="mes" type="button">Mes</button>
-          <button class="popular-tab" data-tab="siempre" type="button">Siempre</button>
+    <!-- ================= Columna lateral ================= -->
+    <aside class="home-side">
+      <section class="panel side-panel" id="ranking">
+        <div class="panel-head">
+          <h2>Ranking</h2>
         </div>
-        <ol class="popular-list" id="popularList"></ol>
-      </div>
-      <div class="sidebar-box ad-slot-sidebar">
-        <span class="ad-label">Publicidad</span>
-        <div class="ad-slot-body ad-slot-tall"><!-- anuncio vertical --></div>
-      </div>
+        <div class="side-tabs" id="rankTabs" role="tablist">
+          <button class="side-tab active" data-rank="rating" type="button" role="tab" aria-selected="true">Mejor valorados</button>
+          <button class="side-tab" data-rank="chapters" type="button" role="tab" aria-selected="false">Más largos</button>
+          <button class="side-tab" data-rank="fresh" type="button" role="tab" aria-selected="false">Recién subidos</button>
+        </div>
+        <ol class="rank-list" id="rankList"></ol>
+      </section>
+
+      <section class="panel side-panel">
+        <div class="panel-head">
+          <h2>El catálogo en números</h2>
+        </div>
+        <div class="stat-rows" id="heroStats"></div>
+      </section>
     </aside>
+
   </div>
 </main>
 
@@ -141,12 +155,12 @@
   </div>
 </footer>
 
-<script src="data.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="data.js?v=10"></script>
+<script src="app.js?v=10"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js?v=11"></script>
+<script src="auth.js?v=10"></script>
 </body>
 </html>
