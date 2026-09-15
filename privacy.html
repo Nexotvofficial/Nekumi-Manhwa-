@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=9"></script>
+<script src="site-guard.js?v=10"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Privacidad — Nekumi</title>
+<meta name="description" content="Qué datos maneja Nekumi y para qué.">
 <link rel="canonical" href="https://nekutoon.com/privacy.html">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="legal.css?v=10">
 </head>
 <body>
 
@@ -14,49 +16,74 @@
   <div class="wrap nav-row">
     <a href="/" class="brand">NEKU<span>MI</span></a>
     <nav class="nav-links">
-      <a href="/#novedades">Novedades</a>
+      <a href="/#tendencias">Tendencias</a>
+      <a href="/#actualizaciones">Actualizaciones</a>
       <a href="/#catalogo">Catálogo</a>
       <a href="favorites.html">Favoritos</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
   </div>
   <div class="nav-mobile">
-    <a href="/#novedades">Novedades</a>
+    <a href="/#tendencias">Tendencias</a>
+    <a href="/#actualizaciones">Actualizaciones</a>
     <a href="/#catalogo">Catálogo</a>
     <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
 <main class="wrap legal-page">
-  <h1>Política de Privacidad</h1>
+  <h1>Política de privacidad</h1>
   <p class="legal-updated">Última actualización: 15 de septiembre de 2026</p>
 
-  <p>Esta política explica qué datos maneja Nekumi y para qué.</p>
+  <p>Esta política explica qué datos maneja Nekumi y para qué. En resumen: podés usar el sitio sin cuenta y sin que nada salga de tu navegador; si iniciás sesión, guardamos lo mínimo para sincronizar tu lectura entre dispositivos.</p>
 
-  <h2>Qué guardamos y dónde</h2>
+  <nav class="legal-toc" aria-label="Contenido de la página">
+    <h2>En esta página</h2>
+    <ol>
+      <li><a href="#datos">Qué guardamos y dónde</a></li>
+      <li><a href="#no-hacemos">Qué no hacemos</a></li>
+      <li><a href="#opciones">Tus opciones</a></li>
+      <li><a href="#menores">Menores de edad</a></li>
+      <li><a href="#cookies">Cookies y publicidad</a></li>
+      <li><a href="#cambios">Cambios en esta política</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="datos">Qué guardamos y dónde</h2>
   <ul>
     <li><strong>En tu navegador (localStorage):</strong> favoritos, progreso de lectura, capítulos leídos y preferencias del lector (tema, ancho de tira, etc.). No sale de tu dispositivo salvo que inicies sesión.</li>
-    <li><strong>Si iniciás sesión (Firebase Authentication):</strong> tu correo electrónico y un identificador de usuario, para poder sincronizar favoritos y progreso entre dispositivos. Este dato lo procesa Google/Firebase como nuestro proveedor.</li>
-    <li><strong>Firestore (base de datos en la nube):</strong> guarda la copia sincronizada de tus favoritos, progreso y capítulos leídos asociada a tu cuenta.</li>
-    <li><strong>Analítica (Firebase Analytics), si está activa:</strong> datos de uso agregados (páginas vistas, dispositivo aproximado) para entender cómo se usa el sitio. No incluye contraseñas.</li>
-    <li><strong>Publicidad de terceros:</strong> si el sitio muestra anuncios, el proveedor de anuncios puede usar cookies o identificadores propios para personalizarlos. Consultá la política de privacidad de ese proveedor para más detalle.</li>
+    <li><strong>Si iniciás sesión (Firebase Authentication):</strong> tu correo electrónico y un identificador de usuario, para sincronizar favoritos y progreso entre dispositivos. Lo procesa Google/Firebase como nuestro proveedor.</li>
+    <li><strong>Firestore:</strong> la copia sincronizada de tus favoritos, progreso y capítulos leídos, asociada a tu cuenta.</li>
+    <li><strong>Analítica (Firebase Analytics), si está activa:</strong> datos de uso agregados (páginas vistas, dispositivo aproximado) para entender cómo se usa el sitio.</li>
+    <li><strong>Publicidad de terceros:</strong> si el sitio muestra anuncios, el proveedor puede usar cookies o identificadores propios para personalizarlos. Revisá la política de privacidad de ese proveedor para el detalle.</li>
   </ul>
 
-  <h2>Qué NO hacemos</h2>
-  <p>No vendemos tus datos personales. No guardamos tu contraseña en texto plano (Firebase la gestiona de forma cifrada). No compartimos tu correo con nadie fuera de lo necesario para operar el login.</p>
+  <h2 id="no-hacemos">Qué no hacemos</h2>
+  <p>No vendemos tus datos personales. No guardamos tu contraseña (Firebase la gestiona de forma cifrada y nosotros no la vemos). No compartimos tu correo con nadie fuera de lo necesario para operar el inicio de sesión.</p>
 
-  <h2>Tus opciones</h2>
+  <h2 id="opciones">Tus opciones</h2>
   <ul>
-    <li>Podés usar el sitio sin crear cuenta: todo funciona igual, solo guardado en tu navegador.</li>
-    <li>Podés borrar tus datos locales en cualquier momento limpiando el almacenamiento del sitio desde la configuración de tu navegador.</li>
-    <li>Podés pedir que eliminemos tu cuenta y los datos asociados escribiendo a <!-- TODO: correo de contacto -->.</li>
+    <li>Podés usar el sitio sin crear cuenta: todo funciona igual, guardado solo en tu navegador.</li>
+    <li>Podés borrar tus datos locales cuando quieras, limpiando el almacenamiento del sitio desde la configuración de tu navegador.</li>
+    <li>Podés pedir que eliminemos tu cuenta y los datos asociados escribiendo a <span class="todo">completar antes de publicar</span>. Respondemos dentro de los 30 días.</li>
   </ul>
 
-  <h2>Cookies</h2>
-  <p>Usamos almacenamiento local para preferencias y, si hay anuncios activos, es posible que las redes publicitarias usen cookies propias. Te mostramos un aviso al entrar por primera vez con más detalle.</p>
+  <h2 id="menores">Menores de edad</h2>
+  <p>El sitio no está dirigido a menores de 13 años y no recogemos datos de forma consciente de ese grupo. Si detectamos una cuenta que los incumple, la eliminamos.</p>
 
-  <h2>Contacto</h2>
-  <p>Dudas sobre esta política: <!-- TODO: correo de contacto -->.</p>
+  <h2 id="cookies">Cookies y publicidad</h2>
+  <p>Usamos almacenamiento local para tus preferencias y, si hay anuncios activos, es posible que las redes publicitarias usen cookies propias. Al entrar por primera vez te mostramos un aviso con más detalle. Si servís anuncios a personas de la UE o el Reino Unido, ese aviso debería reemplazarse por un CMP certificado (Google Consent Mode, Funding Choices o similar): el banner actual informa, pero no bloquea la carga de terceros antes de que elijas.</p>
+
+  <h2 id="cambios">Cambios en esta política</h2>
+  <p>Si cambiamos algo relevante, actualizamos la fecha de arriba. Los cambios rigen desde su publicación.</p>
+
+  <h2 id="contacto">Contacto</h2>
+  <div class="legal-box">
+    <strong>Dudas sobre esta política</strong>
+    <p>Escribinos a <span class="todo">completar antes de publicar</span>.</p>
+  </div>
+
 </main>
 
 <footer class="site-footer">
@@ -70,7 +97,7 @@
   </div>
 </footer>
 
-<script src="data.js?v=9"></script>
+<script src="data.js?v=10"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.querySelector('.nav').classList.toggle('menu-open');
