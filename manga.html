@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=11"></script>
+<script src="site-guard.js?v=10"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nekumi — Manhwa</title>
-<meta name="description" content="Ficha del título, sinopsis y capítulos.">
-<link rel="stylesheet" href="style.css?v=11">
+<title id="pageTitle">Nekumi — Manhwa</title>
+<link rel="canonical" href="https://nekutoon.com/manga.html">
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="manga.css?v=10">
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap nav-row">
     <a href="/" class="brand">NEKU<span>MI</span></a>
-    <div class="search">
-      <input type="search" id="searchInput" placeholder="Buscar un título…" aria-label="Buscar manhwa" autocomplete="off">
-    </div>
     <nav class="nav-links">
-      <a href="/#novedades">Novedades</a>
+      <a href="/#tendencias">Tendencias</a>
+      <a href="/#actualizaciones">Actualizaciones</a>
       <a href="/#catalogo">Catálogo</a>
       <a href="favorites.html">Favoritos</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
   </div>
   <div class="nav-mobile">
-    <a href="/#novedades">Novedades</a>
+    <a href="/#tendencias">Tendencias</a>
+    <a href="/#actualizaciones">Actualizaciones</a>
     <a href="/#catalogo">Catálogo</a>
     <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
-<main id="mainContent">
-  <div class="wrap loading-state">Cargando…</div>
+<main class="wrap" id="mainContent">
+  <div class="loading-state">Cargando…</div>
 </main>
 
 <footer class="site-footer">
@@ -45,13 +45,14 @@
   </div>
 </footer>
 
-<script src="data.js?v=11"></script>
-<script src="app.js?v=11"></script>
-<script src="manga.js?v=11"></script>
+<script src="data.js?v=10"></script>
+<script src="app.js?v=10"></script>
+<script src="manga.js?v=10"></script>
+<script src="manga-enhance.js?v=10"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js?v=11"></script>
+<script src="auth.js?v=10"></script>
 </body>
 </html>
