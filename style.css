@@ -622,3 +622,37 @@ input[type="range"]::-webkit-slider-thumb{
 input[type="range"]::-moz-range-thumb{ width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); cursor: pointer; }
 input[type="range"]::-moz-range-track{ height: 4px; border-radius: 999px; background: var(--bg-raised-2); }
 input[type="range"]::-moz-range-progress{ height: 4px; border-radius: 999px; background: var(--accent); }
+/* ============================================================
+   NEKUMI v12 — fixes (pegar AL FINAL de style.css)
+   ============================================================ */
+
+/* hero: flechas/puntos ocultos cuando hay una sola slide */
+.hero-arrow[hidden], .hero-dots[hidden]{ display: none; }
+.hero-carousel[hidden]{ display: none; }
+
+/* sidebar populares: hint y estado vacío */
+.popular-hint{
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-size: 11px;
+  color: var(--muted-dim);
+  list-style: none;
+}
+.popular-empty{
+  font-size: 13px;
+  color: var(--muted-dim);
+  padding: 14px 0;
+  list-style: none;
+}
+
+/* skeletons dentro de la lista de actualizaciones: altura de fila, no de tarjeta */
+.latest-list .skeleton-card{
+  aspect-ratio: auto;
+  height: 92px;
+}
+
+/* seguridad: si una portada tarda en cargar, que no quede un hueco transparente */
+.card .cover img, .latest-cover img, .popular-cover img, .hero-slide-cover img{
+  background: var(--bg-raised-2);
+}
