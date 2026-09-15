@@ -1,5 +1,6 @@
 /* ============================================================
-   NEKUMI v12 — página de inicio (fix skeletons + populares)
+   NEKUMI — página de inicio
+   Todo sale de mangas.json (ver data.js). Nada hardcodeado.
    ============================================================ */
 
 let CATALOG = [];
@@ -8,284 +9,326 @@ let activeStatus = 'Todos';
 let onlyFavorites = false;
 let searchTerm = '';
 
-let HERO_PICKS = [];
-let heroIndex = 0;
-let heroTimer = null;
-let popularTab = 'semana';
+/* ---------- helpers de presentación ---------- */
 
-/* ---------- tarjeta ---------- */
+function ratingOf(m) {
+  return Number(m && m.rating) || 0;
+}
+
+function chapterCount(m) {
+  return Number(m.total_chapters ?? (m.chapters || []).length) || 0;
+}
+
+function latestChapter(m) {
+  const list = sortedChapters(m, 'desc');
+  return list[0] || null;
+}
+
+function updatedAt(m) {
+  const t = new Date(m && m.last_updated).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+// "hace 3 días", "hace 2 h", "hoy"
+function relativeDate(value) {
+  const t = new Date(value).getTime();
+  if (!Number.isFinite(t)) return '';
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 60) return 'recién';
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return 'ayer';
+  if (days < 30) return `hace ${days} días`;
+  const months = Math.round(days / 30);
+  if (months < 12) return `hace ${months} ${months === 1 ? 'mes' : 'meses'}`;
+  const years = Math.round(months / 12);
+  return `hace ${years} ${years === 1 ? 'año' : 'años'}`;
+}
+
+function readerHref(mangaId, chapterId) {
+  return `reader.html?id=${encodeURIComponent(mangaId)}&chap=${encodeURIComponent(chapterId)}`;
+}
+
+function mangaHref(mangaId) {
+  return `manga.html?id=${encodeURIComponent(mangaId)}`;
+}
+
+/* ---------- tarjeta reutilizable (también la usa manga.js) ---------- */
 
 function cardHTML(manga) {
   if (!manga || !manga.id) return '';
-  const chapters = manga.chapters || [];
   const sClass = statusClass(manga.status);
   const badgeLabel = sClass === 'ongoing' ? 'En emisión' : sClass === 'finished' ? 'Finalizado' : (manga.status || '');
   const fav = isFavorite(manga.id);
-  const isHot = Number(manga.rating) >= 4.5;
   const cover = manga.cover_thumb || manga.cover || '';
+  const last = latestChapter(manga);
   return `
     <div class="card">
-      <a class="card-link" href="manga.html?id=${encodeURIComponent(manga.id)}">
+      <a class="card-link" href="${mangaHref(manga.id)}">
         <div class="cover">
-          ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">` : `<div class="cover-fallback">${escapeHtml((manga.title || '?').slice(0, 1))}</div>`}
+          ${cover
+            ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}" loading="lazy">`
+            : `<div class="cover-fallback">${escapeHtml((manga.title || '?').slice(0, 1))}</div>`}
           ${badgeLabel ? `<span class="badge ${sClass}">${escapeHtml(badgeLabel)}</span>` : ''}
-          ${isHot ? '<span class="hot-tag" title="Muy bien valorado">🔥</span>' : ''}
-          ${manga.rating ? `<span class="rating">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
+          ${ratingOf(manga) ? `<span class="rating">★ ${ratingOf(manga).toFixed(1)}</span>` : ''}
         </div>
         <h3>${escapeHtml(manga.title || 'Sin título')}</h3>
-        <p class="meta">${escapeHtml(manga.total_chapters ?? chapters.length)} caps · ${escapeHtml(manga.category || '')}</p>
+        <p class="meta">${last ? escapeHtml(last.title) : `${chapterCount(manga)} caps`}</p>
       </a>
-      <button class="fav-toggle ${fav ? 'active' : ''}" data-fav-id="${escapeHtml(manga.id)}" type="button" aria-label="Marcar como favorito" title="Favorito">${fav ? '♥' : '♡'}</button>
+      <button class="fav-toggle ${fav ? 'active' : ''}" data-fav-id="${escapeHtml(manga.id)}" type="button" aria-label="Guardar en favoritos" title="Favorito">${fav ? '♥' : '♡'}</button>
     </div>
   `;
 }
 
 function bindFavButtons(root) {
-  root.querySelectorAll('.fav-toggle').forEach((btn) => {
+  if (!root) return;
+  root.querySelectorAll('.fav-toggle[data-fav-id]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const id = btn.dataset.favId;
       const nowFav = toggleFavorite(id);
       btn.classList.toggle('active', nowFav);
       btn.textContent = nowFav ? '♥' : '♡';
-      showToast(nowFav ? 'Agregado a favoritos' : 'Quitado de favoritos', { icon: nowFav ? '♥' : '♡', duration: 1600 });
+      showToast(nowFav ? 'Guardado en favoritos' : 'Quitado de favoritos', { icon: nowFav ? '♥' : '♡', duration: 1600 });
     });
   });
 }
 
-/* ---------- fechas ---------- */
+/* ============================================================
+   Destacado (portada)
+   ============================================================ */
 
-function parseNekumiDate(dateStr) {
-  const d = new Date(String(dateStr || '').replace(' UTC', 'Z').replace(' ', 'T'));
-  return isNaN(d.getTime()) ? new Date(0) : d;
+let spotPicks = [];
+let spotIndex = 0;
+let spotTimer = null;
+
+function buildSpotPicks(list) {
+  return [...list]
+    .sort((a, b) => (ratingOf(b) - ratingOf(a)) || (updatedAt(b) - updatedAt(a)))
+    .slice(0, 8);
 }
 
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const diff = Date.now() - parseNekumiDate(dateStr).getTime();
-  if (isNaN(diff) || diff < 0) return '';
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'ahora mismo';
-  if (m < 60) return `hace ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `hace ${h} h`;
-  const days = Math.floor(h / 24);
-  if (days < 7) return `hace ${days} día${days > 1 ? 's' : ''}`;
-  const w = Math.floor(days / 7);
-  if (w < 5) return `hace ${w} sem`;
-  const mo = Math.floor(days / 30);
-  return `hace ${mo} mes${mo > 1 ? 'es' : ''}`;
-}
+function renderSpotlight() {
+  const manga = spotPicks[spotIndex];
+  if (!manga) return;
 
-/* ---------- HERO carrusel ---------- */
+  const cover = manga.cover || manga.cover_thumb || '';
+  const last = latestChapter(manga);
+  const progress = getProgress(manga.id);
+  const resumeChapter = progress ? getChapter(manga, progress.chapterId) : null;
+  const firstChapter = sortedChapters(manga, 'asc')[0];
+  const cta = resumeChapter
+    ? { href: readerHref(manga.id, resumeChapter.id), label: `Continuar · ${resumeChapter.title}` }
+    : firstChapter
+      ? { href: readerHref(manga.id, firstChapter.id), label: 'Empezar a leer' }
+      : { href: mangaHref(manga.id), label: 'Ver el título' };
 
-function heroSlideHTML(m, i) {
-  const cover = m.cover_thumb || m.cover || '';
-  const chaps = sortedChapters(m, 'desc');
-  const latest = chaps[0];
-  const readHref = latest
-    ? `reader.html?id=${encodeURIComponent(m.id)}&chap=${encodeURIComponent(latest.id)}`
-    : `manga.html?id=${encodeURIComponent(m.id)}`;
-  return `
-    <article class="hero-slide ${i === 0 ? 'active' : ''}" data-slide="${i}">
-      <div class="hero-slide-bg" style="background-image:url('${escapeHtml(cover)}')"></div>
-      <div class="wrap hero-slide-inner">
-        <div class="hero-slide-cover">
-          ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(m.title)}">` : ''}
-        </div>
-        <div class="hero-slide-info">
-          <span class="hero-eyebrow">${m.featured ? '★ Destacado' : '🔥 En tendencia'}</span>
-          <h2 class="hero-slide-title">${escapeHtml(m.title || 'Sin título')}</h2>
-          <div class="hero-slide-meta">
-            ${m.rating ? `<span class="rating-inline">★ ${Number(m.rating).toFixed(1)}</span>` : ''}
-            <span>${escapeHtml(m.status || '')}</span>
-            <span>${m.total_chapters ?? (m.chapters || []).length} capítulos</span>
-          </div>
-          <div class="hero-slide-genres">
-            ${(m.genres || []).slice(0, 4).map((g) => `<span class="tag">${escapeHtml(g)}</span>`).join('')}
-          </div>
-          <div class="hero-ctas">
-            <a class="btn" href="${readHref}">▶ Leer ahora</a>
-            <a class="btn ghost" href="manga.html?id=${encodeURIComponent(m.id)}">Ver ficha</a>
-          </div>
-        </div>
-      </div>
-    </article>
-  `;
-}
+  document.getElementById('spotBackdrop').style.backgroundImage = cover ? `url("${cover}")` : 'none';
 
-function goToSlide(i) {
-  if (HERO_PICKS.length === 0) return;
-  heroIndex = (i + HERO_PICKS.length) % HERO_PICKS.length;
-  document.querySelectorAll('.hero-slide').forEach((s, idx) => s.classList.toggle('active', idx === heroIndex));
-  document.querySelectorAll('.hero-dot').forEach((d, idx) => d.classList.toggle('active', idx === heroIndex));
-}
-
-function restartHeroTimer() {
-  clearInterval(heroTimer);
-  if (HERO_PICKS.length > 1) heroTimer = setInterval(() => goToSlide(heroIndex + 1), 6000);
-}
-
-function renderHero(list) {
-  const box = document.getElementById('heroSlides');
-  if (!box) return;
-  HERO_PICKS = [...list]
-    .sort((a, b) => ((b.featured ? 1 : 0) - (a.featured ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)))
-    .slice(0, 6);
-  if (HERO_PICKS.length === 0) { document.getElementById('heroCarousel').hidden = true; return; }
-  box.innerHTML = HERO_PICKS.map(heroSlideHTML).join('');
-
-  const dots = document.getElementById('heroDots');
-  const prev = document.getElementById('heroPrev');
-  const next = document.getElementById('heroNext');
-  dots.innerHTML = HERO_PICKS
-    .map((_, i) => `<button class="hero-dot ${i === 0 ? 'active' : ''}" data-slide="${i}" type="button" aria-label="Ir al destacado ${i + 1}"></button>`)
-    .join('');
-
-  // con una sola slide no hay nada que rotar: ocultamos flechas/puntos
-  const single = HERO_PICKS.length <= 1;
-  prev.hidden = single;
-  next.hidden = single;
-  dots.hidden = single;
-
-  prev.addEventListener('click', () => { goToSlide(heroIndex - 1); restartHeroTimer(); });
-  next.addEventListener('click', () => { goToSlide(heroIndex + 1); restartHeroTimer(); });
-  dots.addEventListener('click', (e) => {
-    const dot = e.target.closest('.hero-dot');
-    if (dot) { goToSlide(Number(dot.dataset.slide)); restartHeroTimer(); }
-  });
-
-  const carousel = document.getElementById('heroCarousel');
-  carousel.addEventListener('mouseenter', () => clearInterval(heroTimer));
-  carousel.addEventListener('mouseleave', restartHeroTimer);
-  restartHeroTimer();
-}
-
-/* ---------- Trending ---------- */
-
-function renderTrending(list) {
-  const el = document.getElementById('trendingGrid');
-  if (!el) return;
-  const top = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
-  el.innerHTML = top.map((m, i) => `
-    <div class="trending-card">
-      <span class="rank-num">${i + 1}</span>
-      ${cardHTML(m)}
+  const genres = (manga.genres || []).slice(0, 3);
+  document.getElementById('spotCopy').innerHTML = `
+    <p class="spot-kicker">${escapeHtml(statusClass(manga.status) === 'ongoing' ? 'En emisión' : (manga.status || 'En el catálogo'))}${last ? ` · ${escapeHtml(last.title)}` : ''}</p>
+    <h1 class="spot-title">${escapeHtml(manga.title || '')}</h1>
+    <div class="spot-meta">
+      ${ratingOf(manga) ? `<span class="spot-rating">★ ${ratingOf(manga).toFixed(1)}</span>` : ''}
+      <span>${chapterCount(manga)} capítulos</span>
+      ${manga.last_updated ? `<span>actualizado ${escapeHtml(relativeDate(manga.last_updated))}</span>` : ''}
     </div>
-  `).join('');
-  bindFavButtons(el);
-}
-
-/* ---------- Últimas actualizaciones ---------- */
-
-function latestItemHTML(m) {
-  const cover = m.cover_thumb || m.cover || '';
-  const chaps = sortedChapters(m, 'desc').slice(0, 3);
-  return `
-    <article class="latest-item">
-      <a class="latest-cover" href="manga.html?id=${encodeURIComponent(m.id)}">
-        ${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy">` : `<div class="cover-fallback">${escapeHtml((m.title || '?').slice(0, 1))}</div>`}
-      </a>
-      <div class="latest-info">
-        <a class="latest-title" href="manga.html?id=${encodeURIComponent(m.id)}">${escapeHtml(m.title || 'Sin título')}</a>
-        <div class="latest-chapters">
-          ${chaps.map((c) => `
-            <a class="latest-chap" href="reader.html?id=${encodeURIComponent(m.id)}&chap=${encodeURIComponent(c.id)}">
-              <span>Capítulo ${escapeHtml(String(c.number))}</span>
-              <span class="latest-time">${timeAgo(m.last_updated)}</span>
-            </a>
-          `).join('')}
-        </div>
-      </div>
-      ${m.rating ? `<span class="latest-rating">★ ${Number(m.rating).toFixed(1)}</span>` : ''}
-    </article>
+    ${manga.synopsis ? `<p class="spot-synopsis">${escapeHtml(String(manga.synopsis).slice(0, 220))}${String(manga.synopsis).length > 220 ? '…' : ''}</p>` : ''}
+    ${genres.length ? `<div class="spot-genres">${genres.map((g) => `<span>${escapeHtml(g)}</span>`).join('')}</div>` : ''}
+    <div class="spot-ctas">
+      <a class="btn" href="${cta.href}">${escapeHtml(cta.label)}</a>
+      <a class="btn ghost" href="${mangaHref(manga.id)}">Ver capítulos</a>
+    </div>
   `;
+
+  const coverEl = document.getElementById('spotCover');
+  coverEl.href = mangaHref(manga.id);
+  coverEl.removeAttribute('aria-hidden');
+  coverEl.removeAttribute('tabindex');
+  coverEl.setAttribute('aria-label', `Abrir ${manga.title || 'el título'}`);
+  coverEl.innerHTML = cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}">` : '';
+
+  document.querySelectorAll('#spotRail .spot-thumb').forEach((el, i) => {
+    const on = i === spotIndex;
+    el.classList.toggle('active', on);
+    el.setAttribute('aria-current', on ? 'true' : 'false');
+  });
 }
 
-function renderLatest(list) {
-  const el = document.getElementById('latestList');
-  if (!el) return;
-  const fresh = [...list]
-    .sort((a, b) => parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated))
-    .slice(0, 12);
-  el.innerHTML = fresh.map(latestItemHTML).join('');
-  document.getElementById('freshCount').textContent = `${fresh.length} títulos`;
+function goToSpot(i) {
+  spotIndex = (i + spotPicks.length) % spotPicks.length;
+  renderSpotlight();
 }
 
-/* ---------- Sidebar populares (v12: pestañas que sí se diferencian) ---------- */
-
-const POPULAR_TABS = {
-  semana:  { label: 'Semana',  hint: 'Los actualizados más recientemente' },
-  mes:     { label: 'Mes',     hint: 'Los mejor valorados del catálogo' },
-  siempre: { label: 'Siempre', hint: 'Rating + trayectoria (capítulos)' },
-};
-
-function popularSorted(tab) {
-  const list = [...CATALOG];
-  if (tab === 'semana') {
-    return list.sort((a, b) =>
-      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated)) ||
-      ((b.rating || 0) - (a.rating || 0)) ||
-      ((b.total_chapters || 0) - (a.total_chapters || 0))
-    ).slice(0, 10);
-  }
-  if (tab === 'mes') {
-    return list.sort((a, b) =>
-      ((b.rating || 0) - (a.rating || 0)) ||
-      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated))
-    ).slice(0, 10);
-  }
-  return list.sort((a, b) =>
-    (((b.rating || 0) * 10) + (b.total_chapters || 0)) - (((a.rating || 0) * 10) + (a.total_chapters || 0))
-  ).slice(0, 10);
+function startSpotAutoplay() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || spotPicks.length < 2) return;
+  stopSpotAutoplay();
+  spotTimer = setInterval(() => {
+    if (document.hidden) return;
+    goToSpot(spotIndex + 1);
+  }, 8000);
 }
 
-// qué mostrar debajo del título según la pestaña activa, para que se note
-// que el orden realmente cambia
-function popularMetaHTML(m, tab) {
-  if (tab === 'semana') return escapeHtml(timeAgo(m.last_updated) || 'reciente');
-  if (tab === 'mes') return m.rating ? `★ ${Number(m.rating).toFixed(1)}` : 'Sin votos todavía';
-  const caps = m.total_chapters ?? (m.chapters || []).length;
-  return `${m.rating ? `★ ${Number(m.rating).toFixed(1)} · ` : ''}${caps} capítulos`;
+function stopSpotAutoplay() {
+  if (spotTimer) clearInterval(spotTimer);
+  spotTimer = null;
 }
 
-function renderPopular() {
-  const el = document.getElementById('popularList');
-  if (!el) return;
-  const items = popularSorted(popularTab);
-  if (items.length === 0) {
-    el.innerHTML = '<li class="popular-empty">Todavía no hay títulos para rankear.</li>';
+function initSpotlight(list) {
+  spotPicks = buildSpotPicks(list);
+  if (spotPicks.length === 0) {
+    document.getElementById('spotlight').hidden = true;
     return;
   }
-  el.innerHTML = items.map((m, i) => `
-    <li class="popular-item">
-      <span class="popular-rank ${i < 3 ? 'top' : ''}">${i + 1}</span>
-      <a class="popular-cover" href="manga.html?id=${encodeURIComponent(m.id)}">
+
+  document.getElementById('spotRail').innerHTML = spotPicks.map((m, i) => `
+    <li>
+      <button class="spot-thumb${i === 0 ? ' active' : ''}" data-spot="${i}" type="button" aria-label="Destacar ${escapeHtml(m.title || '')}">
+        <img src="${escapeHtml(m.cover_thumb || m.cover || '')}" alt="" loading="lazy">
+      </button>
+    </li>
+  `).join('');
+
+  document.getElementById('spotRail').querySelectorAll('.spot-thumb').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      goToSpot(Number(btn.dataset.spot));
+      startSpotAutoplay();
+    });
+  });
+
+  document.getElementById('spotPrev').addEventListener('click', () => { goToSpot(spotIndex - 1); startSpotAutoplay(); });
+  document.getElementById('spotNext').addEventListener('click', () => { goToSpot(spotIndex + 1); startSpotAutoplay(); });
+
+  const spot = document.getElementById('spotlight');
+  spot.addEventListener('mouseenter', stopSpotAutoplay);
+  spot.addEventListener('mouseleave', startSpotAutoplay);
+  spot.addEventListener('focusin', stopSpotAutoplay);
+  spot.addEventListener('focusout', startSpotAutoplay);
+
+  renderSpotlight();
+  startSpotAutoplay();
+}
+
+/* ============================================================
+   Tendencias (carrusel horizontal)
+   ============================================================ */
+
+function renderTrending(list) {
+  const rail = document.getElementById('trendRail');
+  const picks = [...list]
+    .sort((a, b) => (ratingOf(b) - ratingOf(a)) || (chapterCount(b) - chapterCount(a)))
+    .slice(0, 14);
+  rail.innerHTML = picks.map((m) => `<div class="rail-item">${cardHTML(m)}</div>`).join('');
+  bindFavButtons(rail);
+
+  const step = () => Math.max(240, Math.round(rail.clientWidth * 0.8));
+  document.getElementById('trendPrev').addEventListener('click', () => rail.scrollBy({ left: -step(), behavior: 'smooth' }));
+  document.getElementById('trendNext').addEventListener('click', () => rail.scrollBy({ left: step(), behavior: 'smooth' }));
+}
+
+/* ============================================================
+   Últimas actualizaciones
+   ============================================================ */
+
+function renderUpdates(list) {
+  const rows = [...list].sort((a, b) => updatedAt(b) - updatedAt(a)).slice(0, 8);
+  document.getElementById('updatesNote').textContent = rows.length ? `${rows.length} títulos` : '';
+  document.getElementById('updateList').innerHTML = rows.map((m) => {
+    const chaps = sortedChapters(m, 'desc').slice(0, 3);
+    return `
+      <li class="update-row">
+        <a class="update-cover" href="${mangaHref(m.id)}" tabindex="-1" aria-hidden="true">
+          <img src="${escapeHtml(m.cover_thumb || m.cover || '')}" alt="" loading="lazy">
+        </a>
+        <div class="update-body">
+          <a class="update-title" href="${mangaHref(m.id)}">${escapeHtml(m.title || '')}</a>
+          <div class="update-chaps">
+            ${chaps.map((c) => `
+              <a class="chap-pill${isChapterRead(m.id, c.id) ? ' read' : ''}" href="${readerHref(m.id, c.id)}">${escapeHtml(c.title)}</a>
+            `).join('') || '<span class="update-empty">Sin capítulos todavía</span>'}
+          </div>
+        </div>
+        <span class="update-time">${escapeHtml(relativeDate(m.last_updated))}</span>
+      </li>
+    `;
+  }).join('');
+}
+
+/* ============================================================
+   Ranking lateral
+   ============================================================ */
+
+const RANKERS = {
+  rating: (a, b) => ratingOf(b) - ratingOf(a),
+  chapters: (a, b) => chapterCount(b) - chapterCount(a),
+  fresh: (a, b) => updatedAt(b) - updatedAt(a),
+};
+
+function rankSubtitle(mode, m) {
+  if (mode === 'chapters') return `${chapterCount(m)} capítulos`;
+  if (mode === 'fresh') return relativeDate(m.last_updated) || `${chapterCount(m)} capítulos`;
+  return (m.genres || []).slice(0, 2).join(' · ') || (m.category || '');
+}
+
+function renderRanking(list, mode) {
+  const picks = [...list].sort(RANKERS[mode] || RANKERS.rating).slice(0, 8);
+  document.getElementById('rankList').innerHTML = picks.map((m, i) => `
+    <li class="rank-row">
+      <span class="rank-num${i < 3 ? ' top' : ''}">${i + 1}</span>
+      <a class="rank-cover" href="${mangaHref(m.id)}" tabindex="-1" aria-hidden="true">
         <img src="${escapeHtml(m.cover_thumb || m.cover || '')}" alt="" loading="lazy">
       </a>
-      <div class="popular-info">
-        <a class="popular-title" href="manga.html?id=${encodeURIComponent(m.id)}">${escapeHtml(m.title || 'Sin título')}</a>
-        <span class="popular-meta">${popularMetaHTML(m, popularTab)}</span>
+      <div class="rank-body">
+        <a class="rank-title" href="${mangaHref(m.id)}">${escapeHtml(m.title || '')}</a>
+        <span class="rank-sub">${escapeHtml(rankSubtitle(mode, m))}</span>
+        ${ratingOf(m) ? `<span class="rank-rating">★ ${ratingOf(m).toFixed(1)}</span>` : ''}
       </div>
     </li>
-  `).join('') + `
-    <li class="popular-hint">${escapeHtml(POPULAR_TABS[popularTab].hint)}</li>
-  `;
+  `).join('');
 }
 
-function bindPopularTabs() {
-  const tabs = document.getElementById('popularTabs');
-  if (!tabs) return;
-  tabs.addEventListener('click', (e) => {
-    const btn = e.target.closest('.popular-tab');
-    if (!btn) return;
-    popularTab = btn.dataset.tab;
-    tabs.querySelectorAll('.popular-tab').forEach((b) => b.classList.toggle('active', b === btn));
-    renderPopular();
+function initRanking(list) {
+  const tabs = document.getElementById('rankTabs');
+  tabs.querySelectorAll('.side-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabs.querySelectorAll('.side-tab').forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      renderRanking(list, btn.dataset.rank);
+    });
   });
+  renderRanking(list, 'rating');
 }
 
-/* ---------- Seguir leyendo ---------- */
+/* ============================================================
+   Números del catálogo
+   ============================================================ */
+
+function renderHeroStats(list) {
+  const el = document.getElementById('heroStats');
+  if (!el) return;
+  const totalChapters = list.reduce((sum, m) => sum + chapterCount(m), 0);
+  const ongoing = list.filter((m) => statusClass(m.status) === 'ongoing').length;
+  const genreCount = Math.max(collectGenres(list).length - 1, 0); // -1 por "Todos"
+  const rows = [
+    ['Títulos', list.length],
+    ['Capítulos', totalChapters],
+    ['En emisión', ongoing],
+    ['Géneros', genreCount],
+  ];
+  el.innerHTML = rows.map(([label, value]) => `
+    <div class="stat-row"><span>${label}</span><strong>${value}</strong></div>
+  `).join('');
+}
+
+/* ============================================================
+   Seguir leyendo
+   ============================================================ */
 
 function renderContinue(list) {
   const items = getAllProgress()
@@ -301,9 +344,9 @@ function renderContinue(list) {
     const chap = getChapter(manga, p.chapterId);
     const pct = Math.round((p.scrollFraction || 0) * 100);
     return `
-      <a class="shelf-item" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(p.chapterId)}">
+      <a class="shelf-item" href="${readerHref(manga.id, p.chapterId)}">
         <div class="cover">
-          <img src="${escapeHtml(manga.cover_thumb || manga.cover)}" alt="" loading="lazy">
+          <img src="${escapeHtml(manga.cover_thumb || manga.cover || '')}" alt="" loading="lazy">
           <div class="progress-bar"><span style="width:${pct}%"></span></div>
         </div>
         <h4>${escapeHtml(manga.title)}</h4>
@@ -313,7 +356,9 @@ function renderContinue(list) {
   }).join('');
 }
 
-/* ---------- Catálogo ---------- */
+/* ============================================================
+   Catálogo + filtros
+   ============================================================ */
 
 function collectGenres(list) {
   const set = new Set();
@@ -355,54 +400,47 @@ function renderFullGrid() {
   bindFavButtons(document.getElementById('fullGrid'));
 }
 
-/* ---------- barra de aviso ---------- */
+/* ============================================================
+   Buscador
+   ============================================================ */
 
-function initTopbarAd() {
-  const bar = document.getElementById('topbarAd');
-  const btn = document.getElementById('topbarAdClose');
-  if (!bar || !btn) return;
+function renderSearchSuggestions() {
+  const box = document.getElementById('searchSuggestions');
+  if (!box) return;
+  if (!searchTerm) { box.hidden = true; box.innerHTML = ''; return; }
+  const matches = CATALOG.filter((m) => (m.title || '').toLowerCase().includes(searchTerm)).slice(0, 6);
+  if (matches.length === 0) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = matches.map((m) => `
+    <a class="suggestion" href="${mangaHref(m.id)}">
+      <img src="${escapeHtml(m.cover_thumb || m.cover || '')}" alt="" loading="lazy">
+      <span>${escapeHtml(m.title)}</span>
+    </a>
+  `).join('');
+}
+
+function hideSearchSuggestions() {
+  const box = document.getElementById('searchSuggestions');
+  if (box) box.hidden = true;
+}
+
+/* ============================================================
+   Arranque
+   ============================================================ */
+
+async function init() {
+  if (!document.getElementById('spotlight')) return; // no es la página de inicio
+
   try {
-    if (localStorage.getItem('nekumi_topbar_dismissed')) { bar.hidden = true; return; }
-  } catch { /* sin storage */ }
-  btn.addEventListener('click', () => {
-    bar.hidden = true;
-    try { localStorage.setItem('nekumi_topbar_dismissed', '1'); } catch { /* sin storage */ }
-  });
-}
-
-/* ---------- carga del catálogo con timeout ---------- */
-
-function fetchCatalogWithTimeout(ms) {
-  return Promise.race([
-    fetchCatalog(),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
-  ]);
-}
-
-function renderLoadError() {
-  ['heroCarousel'].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = true; });
-  const main = document.querySelector('.home-main');
-  if (main) {
-    main.innerHTML = `
-      <div class="error-state">
-        <h3>No pudimos cargar el catálogo</h3>
-        <p>Puede ser algo momentáneo (el catálogo se está actualizando o el CDN está lento). Probá de nuevo.</p>
+    CATALOG = await fetchCatalog();
+  } catch (e) {
+    document.querySelector('main').innerHTML = `
+      <div class="wrap error-state">
+        <h3>El catálogo no cargó</h3>
+        <p>Puede estar actualizándose en este momento. Probá de nuevo en unos segundos.</p>
         <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
       </div>`;
     document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
-  }
-}
-
-/* ---------- init ---------- */
-
-async function init() {
-  if (!document.getElementById('heroSlides')) return;
-  initTopbarAd();
-  try {
-    CATALOG = await fetchCatalogWithTimeout(12000);
-  } catch (e) {
-    console.warn('[Nekumi] Falló la carga del catálogo:', e);
-    renderLoadError();
     return;
   }
 
@@ -410,11 +448,21 @@ async function init() {
   const statuses = collectStatuses(CATALOG);
 
   function refreshGenreChips() {
-    renderChips('genreChips', genres, activeGenre, (v) => { activeGenre = v; refreshGenreChips(); renderFullGrid(); });
+    renderChips('genreChips', genres, activeGenre, (v) => {
+      activeGenre = v;
+      refreshGenreChips();
+      renderFullGrid();
+    });
   }
+
   function refreshStatusChips() {
-    renderChips('statusChips', statuses, activeStatus, (v) => { activeStatus = v; refreshStatusChips(); renderFullGrid(); });
+    renderChips('statusChips', statuses, activeStatus, (v) => {
+      activeStatus = v;
+      refreshStatusChips();
+      renderFullGrid();
+    });
   }
+
   function refreshFavChip() {
     const el = document.getElementById('favChip');
     el.classList.toggle('active', onlyFavorites);
@@ -432,46 +480,32 @@ async function init() {
     document.querySelector('.nav').classList.toggle('menu-open');
   });
 
-  renderHero(CATALOG);
+  initSpotlight(CATALOG);
   renderContinue(CATALOG);
   renderTrending(CATALOG);
-  renderLatest(CATALOG);
-  renderPopular();
-  bindPopularTabs();
+  renderUpdates(CATALOG);
+  initRanking(CATALOG);
+  renderHeroStats(CATALOG);
   refreshGenreChips();
   refreshStatusChips();
   renderFullGrid();
 
-  document.getElementById('searchInput').addEventListener('input', (e) => {
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', (e) => {
     searchTerm = e.target.value.trim().toLowerCase();
     renderFullGrid();
     renderSearchSuggestions();
   });
-  document.getElementById('searchInput').addEventListener('focus', renderSearchSuggestions);
+  input.addEventListener('focus', renderSearchSuggestions);
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.search')) hideSearchSuggestions();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideSearchSuggestions();
   });
-}
 
-function renderSearchSuggestions() {
-  const box = document.getElementById('searchSuggestions');
-  if (!searchTerm) { box.hidden = true; box.innerHTML = ''; return; }
-  const matches = CATALOG.filter((m) => (m.title || '').toLowerCase().includes(searchTerm)).slice(0, 6);
-  if (matches.length === 0) { box.hidden = true; box.innerHTML = ''; return; }
-  box.hidden = false;
-  box.innerHTML = matches.map((m) => `
-    <a class="suggestion" href="manga.html?id=${encodeURIComponent(m.id)}">
-      <img src="${escapeHtml(m.cover_thumb || m.cover)}" alt="" loading="lazy">
-      <span>${escapeHtml(m.title)}</span>
-    </a>
-  `).join('');
-}
-
-function hideSearchSuggestions() {
-  document.getElementById('searchSuggestions').hidden = true;
+  // el progreso puede cambiar en otra pestaña (o al volver del lector)
+  document.addEventListener('nekumi:progress-changed', () => renderContinue(CATALOG));
 }
 
 init();
