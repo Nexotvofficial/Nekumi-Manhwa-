@@ -449,6 +449,36 @@ def resolve_cover(manga_id, repo_name=GITHUB_REPO):
     return ""
 
 
+# Páginas que un scan insertó (créditos, staff, publicidad de Discord/Patreon, etc.)
+# se detectan por el nombre de archivo ORIGINAL (antes de renombrarlas a 001.webp...).
+# También se puede forzar manualmente creando "extra_pages.txt" dentro de la carpeta
+# del capítulo, con un nombre de archivo por línea (tal cual está en esa carpeta).
+EXTRA_PAGE_KEYWORDS = re.compile(
+    r'(extra|credito|creditos|staff|traductor|traduccion|publicidad|donacion|discord|patreon|anuncio)',
+    re.IGNORECASE,
+)
+
+
+def _load_manual_extra_list(chap_path):
+    manual_path = os.path.join(chap_path, "extra_pages.txt")
+    if not os.path.exists(manual_path):
+        return set()
+    try:
+        with open(manual_path, "r", encoding="utf-8") as f:
+            return {line.strip().lower() for line in f if line.strip()}
+    except Exception as e:
+        print(f"⚠️ No se pudo leer extra_pages.txt en {chap_path}: {e}")
+        return set()
+
+
+def _compute_extra_flags(chap_path, images):
+    manual_extra = _load_manual_extra_list(chap_path)
+    return [
+        bool(EXTRA_PAGE_KEYWORDS.search(os.path.splitext(name)[0])) or name.lower() in manual_extra
+        for name in images
+    ]
+
+
 def _convert_chapter_images(chap_path, images):
     """Convierte las imágenes de un capítulo a WebP en paralelo (hilos), preservando
     el orden original de páginas. Devuelve la lista de rutas finales temporales
@@ -539,6 +569,7 @@ def process_manga(manga_id, manga_path, prev_cache):
             continue
 
         images = sorted(raw_images, key=natural_sort_key)
+        extra_flags = _compute_extra_flags(chap_path, images)
         safe_paths = _convert_chapter_images(chap_path, images)
 
         pages = []
@@ -551,7 +582,11 @@ def process_manga(manga_id, manga_path, prev_cache):
                 shutil.move(temp_path, final_path)
 
             final_paths.append(final_path)
-            pages.append(get_media_url(final_path, repo_name=manga_repo))
+            page_url = get_media_url(final_path, repo_name=manga_repo)
+            if extra_flags[index]:
+                pages.append({"url": page_url, "extra": True})
+            else:
+                pages.append(page_url)
 
         if remote_mode:
             for final_path in final_paths:
@@ -559,11 +594,12 @@ def process_manga(manga_id, manga_path, prev_cache):
                 pending_uploads[remote_rel] = final_path
 
         chap_num = extract_chapter_number(chap_folder)
+        real_pages_count = sum(1 for flag in extra_flags if not flag) or len(pages)
         chapter_data = {
             "id": chap_folder.lower().replace(" ", "-"),
             "number": chap_num,
             "title": f"Capítulo {chap_num}",
-            "pages_count": len(pages),
+            "pages_count": real_pages_count,
             "pages": pages
         }
         chapters.append(chapter_data)
