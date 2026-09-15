@@ -8,17 +8,83 @@
 </head>
 <body class="reader-mode">
 
+<div class="dim-overlay" id="dimOverlay"></div>
+
 <div class="progress-rail"><span id="progressFill"></span></div>
 
 <div class="reader-topbar" id="topbar">
   <a class="r-back" id="backLink" href="index.html">← Volver</a>
-  <span class="r-title" id="readerTitle">Cargando…</span>
+  <div class="r-title-block">
+    <span class="r-title" id="readerTitle">Cargando…</span>
+    <span class="r-pagecount" id="pageCounter"></span>
+  </div>
+  <button class="fav-toggle static" id="favBtn" type="button" title="Favorito">♡</button>
   <select id="chapterSelect" aria-label="Cambiar de capítulo"></select>
+  <button class="icon-btn" id="settingsBtn" type="button" aria-label="Ajustes de lectura" title="Ajustes">⚙</button>
+  <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
 </div>
+
+<aside class="settings-drawer" id="settingsDrawer" hidden>
+  <div class="settings-head">
+    <h3>Ajustes de lectura</h3>
+    <button class="icon-btn" id="closeSettings" type="button" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div class="setting-block">
+    <label>Modo de lectura</label>
+    <div class="segmented" id="modeSegment">
+      <button data-value="strip" type="button">Tira continua</button>
+      <button data-value="paged" type="button">Por páginas</button>
+    </div>
+  </div>
+
+  <div class="setting-block" id="widthBlock">
+    <label>Ancho de la tira <span id="widthValue"></span></label>
+    <input type="range" id="widthRange" min="60" max="160" step="5">
+  </div>
+
+  <div class="setting-block" id="gapBlock">
+    <label>Separación entre páginas <span id="gapValue"></span></label>
+    <input type="range" id="gapRange" min="0" max="24" step="2">
+  </div>
+
+  <div class="setting-block" id="directionBlock" hidden>
+    <label>Sentido de lectura</label>
+    <div class="segmented" id="directionSegment">
+      <button data-value="ltr" type="button">Izquierda → Derecha</button>
+      <button data-value="rtl" type="button">Derecha → Izquierda</button>
+    </div>
+  </div>
+
+  <div class="setting-block">
+    <label>Atenuar pantalla <span id="dimValue"></span></label>
+    <input type="range" id="dimRange" min="0" max="70" step="5">
+  </div>
+
+  <div class="setting-block" id="autoScrollBlock">
+    <label class="switch-row">
+      <span>Auto-scroll</span>
+      <span class="switch"><input type="checkbox" id="autoScrollToggle"><span class="switch-track"></span></span>
+    </label>
+    <input type="range" id="autoScrollSpeed" min="10" max="120" step="10">
+  </div>
+
+  <div class="setting-block">
+    <label class="switch-row">
+      <span>Mostrar número de página</span>
+      <span class="switch"><input type="checkbox" id="pageCountToggle"><span class="switch-track"></span></span>
+    </label>
+  </div>
+
+  <button class="btn ghost" id="resetPrefs" type="button">Restablecer ajustes</button>
+</aside>
 
 <main id="readerMain">
   <div class="loading-state">Cargando páginas…</div>
 </main>
+
+<button class="thumb-toggle" id="thumbToggle" type="button" title="Ver todas las páginas">▤</button>
+<div class="thumb-drawer" id="thumbDrawer" hidden></div>
 
 <div class="reader-bottombar" id="bottombar">
   <button id="prevBtn" type="button">← Anterior</button>
