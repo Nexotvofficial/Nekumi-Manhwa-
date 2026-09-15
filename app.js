@@ -168,11 +168,6 @@ async function init() {
     return;
   }
 
-  document.getElementById('surpriseBtn')?.addEventListener('click', () => {
-    const pick = pickRandomManga(CATALOG);
-    if (pick) window.location.href = `manga.html?id=${encodeURIComponent(pick.id)}`;
-  });
-
   const genres = collectGenres(CATALOG);
   const statuses = collectStatuses(CATALOG);
 
