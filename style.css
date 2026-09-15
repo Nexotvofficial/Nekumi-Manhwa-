@@ -526,7 +526,7 @@ button{ font-family: inherit; }
    ============================================================ */
 body.reader-mode{
   background: var(--reader-bg, #08060B);
-  --reader-width: 100%;
+  --reader-width: 760px;
   --reader-gap: 0px;
   --reader-bg: #08060B;
   transition: background .2s ease;
@@ -630,7 +630,7 @@ body.reader-mode[data-theme="white"] .reader-topbar{
 
 /* ---- modo tira continua ---- */
 .strip-pages{
-  max-width: calc(760px * var(--reader-width) / 100);
+  max-width: min(100%, var(--reader-width));
   margin: 0 auto;
   padding-top: 0;
   display: flex;
@@ -649,7 +649,7 @@ body.reader-mode[data-theme="white"] .reader-topbar{
   background: var(--reader-bg, #000);
 }
 .paged-page{
-  max-width: calc(min(92vw, 900px) * var(--reader-width) / 100);
+  max-width: min(92vw, var(--reader-width));
   max-height: 96vh;
   object-fit: contain;
 }
@@ -781,23 +781,30 @@ body.reader-mode[data-theme="white"] .reader-topbar{
 .segmented button + button{ border-left: 1px solid var(--line); }
 .segmented button.active{ background: var(--accent-soft); color: var(--paper); }
 
-/* fila de presets rápidos (p. ej. ancho de tira) */
-.preset-row{
-  display: flex;
+/* grilla de presets rápidos (p. ej. ancho de página), estilo del panel de referencia */
+.preset-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
-.preset-row button{
-  flex: 1;
-  border: 1px solid var(--line);
-  background: var(--bg-raised-2);
+.preset-grid button{
+  border: none;
+  background: none;
   color: var(--muted);
-  padding: 6px 4px;
+  padding: 8px 4px;
   border-radius: var(--radius);
-  font-size: 11px;
+  font-size: 11.5px;
   cursor: pointer;
 }
-.preset-row button:hover{ color: var(--paper); border-color: var(--muted); }
-.preset-row button.active{ background: var(--accent-soft); border-color: var(--accent); color: var(--paper); }
+.preset-grid button:hover{ background: var(--bg-raised-2); color: var(--paper); }
+.preset-grid button.active{ background: var(--accent); color: #170A0E; font-weight: 700; }
+
+.setting-hint{
+  font-size: 11px;
+  color: var(--muted-dim);
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
 
 .settings-reset{
   width: 100%;
