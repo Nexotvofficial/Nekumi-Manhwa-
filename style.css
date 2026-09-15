@@ -168,11 +168,29 @@ button{ font-family: inherit; }
 
 /* ---------- Hero ---------- */
 .hero{
-  padding: 56px 0 40px;
+  padding: 48px 0 40px;
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 48px;
   align-items: center;
+}
+.hero-eyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 16px;
+}
+.hero-eyebrow::before{
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 .hero-copy h1{
   font-family: var(--display);
@@ -187,10 +205,46 @@ button{ font-family: inherit; }
 }
 .hero-copy p{
   color: var(--muted);
-  max-width: 46ch;
+  max-width: 48ch;
   font-size: 17px;
-  margin: 0 0 26px;
+  margin: 0 0 22px;
 }
+.hero-stats{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 28px;
+}
+.stat-pill{
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.stat-pill strong{
+  color: var(--paper);
+  font-weight: 700;
+  margin-right: 4px;
+}
+.hero-ctas{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.hero-ctas .btn-text{
+  color: var(--muted);
+  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+  cursor: pointer;
+  background: none;
+  border-top: none; border-left: none; border-right: none;
+  font-family: inherit;
+}
+.hero-ctas .btn-text:hover{ color: var(--paper); border-color: var(--paper); }
 .btn{
   display: inline-flex;
   align-items: center;
@@ -241,12 +295,44 @@ button{ font-family: inherit; }
 }
 
 /* ---------- Section headings ---------- */
-.section{ padding: 46px 0; }
+/* Cada <section class="section"> es su propia franja: le damos aire real
+   arriba/abajo y, cuando hace falta, un fondo apenas distinto (.section-alt)
+   para que quede claro dónde termina una cosa ("Novedades") y empieza la
+   otra ("Catálogo completo"), en vez de que todo se vea como un solo bloque. */
+.section{
+  padding: 64px 0;
+  position: relative;
+}
+.section + .section{
+  border-top: 1px solid var(--line);
+}
+/* .section-alt vive en el mismo elemento que .wrap (que tiene max-width),
+   así que el fondo se pinta con un pseudo-elemento que sangra a todo el
+   ancho de la ventana en vez de quedar encerrado en el contenedor. */
+.section-alt::before{
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%; right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: linear-gradient(180deg, var(--bg-raised) 0%, var(--bg) 100%);
+  z-index: -1;
+}
+.section-eyebrow{
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  margin: 0 0 8px;
+}
 .section-head{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
   gap: 16px;
 }
 .section-head h2{
@@ -258,6 +344,10 @@ button{ font-family: inherit; }
 .section-head .count{
   color: var(--muted-dim);
   font-size: 14px;
+}
+
+@media (max-width: 720px){
+  .section{ padding: 44px 0; }
 }
 
 /* ---------- Chips / filters ---------- */
@@ -345,6 +435,22 @@ button{ font-family: inherit; }
   font-weight: 700;
   padding: 3px 7px;
   border-radius: 3px;
+}
+.hot-tag{
+  position: absolute;
+  top: 8px;
+  right: 42px;
+  font-size: 13px;
+}
+.cover-fallback{
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 42px;
+  color: var(--muted-dim);
+  background: var(--bg-raised-2);
 }
 .card h3{
   font-size: 14.5px;
@@ -988,4 +1094,111 @@ kbd{
   text-align: center;
   color: var(--muted);
 }
-.error-state h3{ color: var(--paper); font-family: var(--display); font-size: 26px; }
+.error-state h3{ color: var(--paper); font-family: var(--display); font-size: 26px; margin-bottom: 8px; }
+.error-state p{ margin: 0 0 18px; }
+.error-state .btn{ margin-top: 4px; }
+
+/* ---- esqueleto de carga (evita el "Cargando..." pelado) ---- */
+@keyframes skeleton-pulse{ 0%,100%{ opacity: 0.55; } 50%{ opacity: 1; } }
+.skeleton-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 22px 18px;
+}
+.skeleton-card{
+  aspect-ratio: 3/4.3;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- toasts ---- */
+.toast-stack{
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast{
+  background: rgba(23,17,31,0.96);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .2s ease, transform .2s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.toast.in{ opacity: 1; transform: translateY(0); }
+.toast-icon{ font-size: 14px; }
+
+/* ---- sliders con relleno (en vez de la barra genérica del navegador) ---- */
+input[type="range"]{
+  --range-percent: 0%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right,
+    var(--accent) 0%, var(--accent) var(--range-percent),
+    var(--bg-raised-2) var(--range-percent), var(--bg-raised-2) 100%);
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  margin-top: -1px;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb{
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--paper);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track{
+  height: 4px;
+  border-radius: 999px;
+  background: var(--bg-raised-2);
+}
+input[type="range"]::-moz-range-progress{
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ---- panel de ajustes: backdrop + deslizamiento ---- */
+.settings-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(8,6,11,0.5);
+  z-index: 59;
+}
+.settings-drawer{
+  transform: translateX(100%);
+  transition: transform .22s ease;
+}
+.settings-drawer.open{ transform: translateX(0); }
+.settings-tab{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.2;
+}
+.settings-tab span{ font-size: 14px; }
