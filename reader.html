@@ -50,12 +50,20 @@
 
     <div class="setting-block" id="widthBlock">
       <label id="widthLabel">Ancho de la tira <span id="widthValue"></span></label>
-      <div class="preset-row" id="widthPresets">
-        <button data-value="60" type="button">Compacto</button>
-        <button data-value="100" type="button">Cómodo</button>
-        <button data-value="140" type="button">Amplio</button>
+      <div class="preset-grid" id="widthPresets">
+        <button data-value="760" type="button">Defecto</button>
+        <button data-value="600" type="button">600px</button>
+        <button data-value="660" type="button">660px</button>
+        <button data-value="720" type="button">720px</button>
+        <button data-value="780" type="button">780px</button>
+        <button data-value="840" type="button">840px</button>
+        <button data-value="900" type="button">900px</button>
+        <button data-value="960" type="button">960px</button>
+        <button data-value="1020" type="button">1020px</button>
+        <button data-value="1080" type="button">1080px</button>
+        <button data-value="1140" type="button">1140px</button>
+        <button data-value="1200" type="button">1200px</button>
       </div>
-      <input type="range" id="widthRange" min="60" max="160" step="5">
     </div>
 
     <div class="setting-block" id="gapBlock">
@@ -103,6 +111,14 @@
         <span>Mostrar número de página</span>
         <span class="switch"><input type="checkbox" id="pageCountToggle"><span class="switch-track"></span></span>
       </label>
+    </div>
+
+    <div class="setting-block">
+      <label class="switch-row">
+        <span>Mostrar páginas extra</span>
+        <span class="switch"><input type="checkbox" id="extraPagesToggle"><span class="switch-track"></span></span>
+      </label>
+      <p class="setting-hint">Créditos o publicidad que a veces trae el scan. Están ocultas por defecto.</p>
     </div>
 
   </div>
