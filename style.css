@@ -849,6 +849,7 @@ body.reader-mode[data-theme="white"] .reader-topbar{
   display: flex;
   flex-direction: column;
   gap: var(--reader-gap);
+  transition: max-width .15s ease;
 }
 .strip-pages img{ width: 100%; display: block; }
 
