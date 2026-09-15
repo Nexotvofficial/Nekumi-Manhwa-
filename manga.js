@@ -39,7 +39,7 @@ function renderDetail(manga) {
   const cover = manga.cover || manga.cover_thumb || '';
 
   document.getElementById('mainContent').innerHTML = `
-    <a class="detail-back" href="index.html">← Volver al catálogo</a>
+    <a class="detail-back" href="/">← Volver al catálogo</a>
     <div class="detail-head">
       <div class="detail-cover">
         ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}">` : ''}
@@ -133,7 +133,7 @@ async function init() {
     document.getElementById('mainContent').innerHTML = `
       <div class="error-state">
         <h3>No encontramos ese título</h3>
-        <p><a class="btn ghost" href="index.html">Volver al catálogo</a></p>
+        <p><a class="btn ghost" href="/">Volver al catálogo</a></p>
       </div>`;
     return;
   }
