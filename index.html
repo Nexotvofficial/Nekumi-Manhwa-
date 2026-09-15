@@ -35,17 +35,24 @@
 <main>
   <section class="wrap hero">
     <div class="hero-copy">
-      <span class="hero-eyebrow">Sin anuncios · sin cortes · gratis</span>
+      <span class="hero-eyebrow">Actualizado siempre · gratis · sin cortes</span>
       <h1>Historias que<br>no <em>terminan</em><br>al bajar.</h1>
       <p>Nada de tarjetas cortadas ni saltos raros: cada capítulo es una tira continua, tal como se dibuja. Elegí un título, apretá play con el dedo, y no soltás hasta el final.</p>
       <div class="hero-stats" id="heroStats"></div>
       <div class="hero-ctas">
         <a href="#catalogo" class="btn">Explorar catálogo</a>
-        <button class="btn-text" id="surpriseBtn" type="button">🎲 Sorprendeme</button>
       </div>
     </div>
     <div class="strip" id="heroStrip" aria-hidden="true"></div>
   </section>
+
+  <!-- AD SLOT: reemplazá el contenido de #adSlotTop por tu código de AdSense u otra red.
+       El label "Publicidad" queda fijo arriba para cumplir con la transparencia que piden
+       la mayoría de las redes (y buenas prácticas / normativa de publicidad). -->
+  <div class="wrap ad-slot" id="adSlotTop">
+    <span class="ad-label">Publicidad</span>
+    <div class="ad-slot-body"><!-- tu <script> / <ins> de AdSense va aquí --></div>
+  </div>
 
   <section class="wrap section" id="continuar" hidden>
     <div class="section-head">
@@ -87,8 +94,13 @@
 </main>
 
 <footer class="site-footer">
-  <div class="wrap">
-    Nekumi · catálogo generado automáticamente desde el repositorio.
+  <div class="wrap footer-row">
+    <span>Nekumi · catálogo generado automáticamente desde el repositorio.</span>
+    <nav class="footer-links">
+      <a href="dmca.html">DMCA</a>
+      <a href="privacy.html">Privacidad</a>
+      <a href="terms.html">Términos</a>
+    </nav>
   </div>
 </footer>
 
