@@ -6,6 +6,23 @@
 
 const CATALOG_URL = 'mangas.json';
 const PROGRESS_KEY = 'nekumi_progress_v1';
+const FAVORITES_KEY = 'nekumi_favorites_v1';
+const READER_PREFS_KEY = 'nekumi_reader_prefs_v1';
+
+// Cuántos títulos como mínimo debe tener el catálogo para mostrar
+// la sección "Recién actualizado" en el inicio.
+const MIN_TITLES_FOR_FRESH_SECTION = 3;
+
+const DEFAULT_READER_PREFS = {
+  mode: 'strip',          // 'strip' | 'paged'
+  width: 100,             // % de ancho de la tira / zoom en modo paginado
+  gap: 0,                 // separación entre páginas (modo tira)
+  direction: 'ltr',       // 'ltr' | 'rtl' (modo paginado)
+  dim: 0,                 // atenuar pantalla (0-70)
+  theme: 'black',         // 'black' | 'charcoal' | 'sepia' | 'white'
+  autoScrollSpeed: 40,
+  showPageCount: true,
+};
 
 async function fetchCatalog() {
   const res = await fetch(CATALOG_URL, { cache: 'no-store' });
@@ -39,6 +56,44 @@ function escapeHtml(str) {
   ));
 }
 
+/* ---------- favoritos (localStorage) ---------- */
+
+function readFavorites() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavorites(list) {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
+  } catch {
+    /* almacenamiento no disponible: se ignora silenciosamente */
+  }
+  // avisa a otras partes de la página (p. ej. auth.js) que los favoritos cambiaron
+  document.dispatchEvent(new CustomEvent('nekumi:favorites-changed', { detail: { list } }));
+}
+
+function isFavorite(id) {
+  return readFavorites().includes(id);
+}
+
+function toggleFavorite(id) {
+  const list = readFavorites();
+  const idx = list.indexOf(id);
+  if (idx === -1) {
+    list.push(id);
+    writeFavorites(list);
+    return true;
+  }
+  list.splice(idx, 1);
+  writeFavorites(list);
+  return false;
+}
+
 /* ---------- progreso de lectura (localStorage) ---------- */
 
 function readProgressStore() {
@@ -58,6 +113,7 @@ function saveProgress(mangaId, chapterId, scrollFraction) {
       updatedAt: Date.now(),
     };
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(store));
+    document.dispatchEvent(new CustomEvent('nekumi:progress-changed', { detail: { mangaId, chapterId, scrollFraction } }));
   } catch {
     /* almacenamiento no disponible: se ignora silenciosamente */
   }
@@ -73,6 +129,57 @@ function getAllProgress() {
   return Object.entries(store)
     .sort((a, b) => b[1].updatedAt - a[1].updatedAt)
     .map(([mangaId, data]) => ({ mangaId, ...data }));
+}
+
+/* ---------- preferencias del lector (localStorage) ---------- */
+
+function readReaderPrefs() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(READER_PREFS_KEY) || '{}');
+    return { ...DEFAULT_READER_PREFS, ...raw };
+  } catch {
+    return { ...DEFAULT_READER_PREFS };
+  }
+}
+
+function saveReaderPrefs(prefs) {
+  try {
+    localStorage.setItem(READER_PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* almacenamiento no disponible: se ignora silenciosamente */
+  }
+}
+
+/* ---------- capítulos leídos (localStorage) ---------- */
+
+const READ_CHAPTERS_KEY = 'nekumi_read_v1';
+
+function readReadStore() {
+  try {
+    return JSON.parse(localStorage.getItem(READ_CHAPTERS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function isChapterRead(mangaId, chapterId) {
+  const store = readReadStore();
+  return Boolean(store[mangaId] && store[mangaId].includes(chapterId));
+}
+
+function markChapterRead(mangaId, chapterId) {
+  try {
+    const store = readReadStore();
+    const list = store[mangaId] || [];
+    if (!list.includes(chapterId)) {
+      list.push(chapterId);
+      store[mangaId] = list;
+      localStorage.setItem(READ_CHAPTERS_KEY, JSON.stringify(store));
+      document.dispatchEvent(new CustomEvent('nekumi:read-changed', { detail: { mangaId, chapterId } }));
+    }
+  } catch {
+    /* almacenamiento no disponible: se ignora silenciosamente */
+  }
 }
 
 function qs(name) {
