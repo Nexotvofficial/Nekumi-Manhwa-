@@ -13,12 +13,20 @@
   <div class="wrap nav-row">
     <a href="index.html" class="brand">NEKU<span>MI</span></a>
     <div class="search">
-      <input type="search" id="searchInput" placeholder="Buscar un título…" aria-label="Buscar manhwa">
+      <input type="search" id="searchInput" placeholder="Buscar un título…" aria-label="Buscar manhwa" autocomplete="off">
+      <div class="search-suggestions" id="searchSuggestions" hidden></div>
     </div>
     <nav class="nav-links">
       <a href="#novedades">Novedades</a>
       <a href="#catalogo">Catálogo</a>
+      <a href="favorites.html">Favoritos</a>
     </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
+  </div>
+  <div class="nav-mobile">
+    <a href="#novedades">Novedades</a>
+    <a href="#catalogo">Catálogo</a>
+    <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
@@ -54,6 +62,9 @@
     </div>
     <div class="chips" id="genreChips"></div>
     <div class="chips" id="statusChips"></div>
+    <div class="chips">
+      <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
+    </div>
     <div class="grid" id="fullGrid"></div>
     <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
   </section>
