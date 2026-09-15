@@ -28,72 +28,93 @@
 
 <aside class="settings-drawer" id="settingsDrawer" hidden>
   <div class="settings-head">
-    <h3>Ajustes de lectura</h3>
+    <h3>Ajustes</h3>
     <button class="icon-btn" id="closeSettings" type="button" aria-label="Cerrar">✕</button>
   </div>
 
-  <div class="setting-block">
-    <label>Modo de lectura</label>
-    <div class="segmented" id="modeSegment">
-      <button data-value="strip" type="button">Tira continua</button>
-      <button data-value="paged" type="button">Por páginas</button>
+  <div class="settings-tabs" id="settingsTabs">
+    <button class="settings-tab active" data-tab="lectura" type="button">Lectura</button>
+    <button class="settings-tab" data-tab="pantalla" type="button">Pantalla</button>
+    <button class="settings-tab" data-tab="ayuda" type="button">Ayuda</button>
+  </div>
+
+  <div class="settings-tab-panel" data-tab-panel="lectura">
+
+    <div class="setting-block">
+      <label>Modo de lectura</label>
+      <div class="segmented" id="modeSegment">
+        <button data-value="strip" type="button">Tira continua</button>
+        <button data-value="paged" type="button">Por páginas</button>
+      </div>
+    </div>
+
+    <div class="setting-block" id="widthBlock">
+      <label id="widthLabel">Ancho de la tira <span id="widthValue"></span></label>
+      <div class="preset-row" id="widthPresets">
+        <button data-value="60" type="button">Compacto</button>
+        <button data-value="100" type="button">Cómodo</button>
+        <button data-value="140" type="button">Amplio</button>
+      </div>
+      <input type="range" id="widthRange" min="60" max="160" step="5">
+    </div>
+
+    <div class="setting-block" id="gapBlock">
+      <label>Separación entre páginas <span id="gapValue"></span></label>
+      <input type="range" id="gapRange" min="0" max="24" step="2">
+    </div>
+
+    <div class="setting-block" id="directionBlock" hidden>
+      <label>Sentido de lectura</label>
+      <div class="segmented" id="directionSegment">
+        <button data-value="ltr" type="button">Izq. → Der.</button>
+        <button data-value="rtl" type="button">Der. → Izq.</button>
+      </div>
+    </div>
+
+    <div class="setting-block" id="autoScrollBlock">
+      <label class="switch-row">
+        <span>Auto-scroll</span>
+        <span class="switch"><input type="checkbox" id="autoScrollToggle"><span class="switch-track"></span></span>
+      </label>
+      <input type="range" id="autoScrollSpeed" min="10" max="120" step="10">
+    </div>
+
+  </div>
+
+  <div class="settings-tab-panel" data-tab-panel="pantalla" hidden>
+
+    <div class="setting-block">
+      <label>Tema de lectura</label>
+      <div class="segmented" id="themeSegment">
+        <button data-value="black" type="button">Negro</button>
+        <button data-value="charcoal" type="button">Gris</button>
+        <button data-value="sepia" type="button">Sepia</button>
+        <button data-value="white" type="button">Blanco</button>
+      </div>
+    </div>
+
+    <div class="setting-block">
+      <label>Atenuar pantalla <span id="dimValue"></span></label>
+      <input type="range" id="dimRange" min="0" max="70" step="5">
+    </div>
+
+    <div class="setting-block">
+      <label class="switch-row">
+        <span>Mostrar número de página</span>
+        <span class="switch"><input type="checkbox" id="pageCountToggle"><span class="switch-track"></span></span>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="settings-tab-panel" data-tab-panel="ayuda" hidden>
+    <div class="shortcuts-hint">
+      <h4>Atajos de teclado</h4>
+      <p><kbd>←</kbd> <kbd>→</kbd> avanzar/retroceder · <kbd>Espacio</kbd> bajar o pasar página · <kbd>F</kbd> pantalla completa · <kbd>Esc</kbd> cerrar panel</p>
     </div>
   </div>
 
-  <div class="setting-block">
-    <label>Tema de lectura</label>
-    <div class="segmented" id="themeSegment">
-      <button data-value="black" type="button">Negro</button>
-      <button data-value="charcoal" type="button">Gris</button>
-      <button data-value="sepia" type="button">Sepia</button>
-      <button data-value="white" type="button">Blanco</button>
-    </div>
-  </div>
-
-  <div class="setting-block" id="widthBlock">
-    <label id="widthLabel">Ancho de la tira <span id="widthValue"></span></label>
-    <input type="range" id="widthRange" min="60" max="160" step="5">
-  </div>
-
-  <div class="setting-block" id="gapBlock">
-    <label>Separación entre páginas <span id="gapValue"></span></label>
-    <input type="range" id="gapRange" min="0" max="24" step="2">
-  </div>
-
-  <div class="setting-block" id="directionBlock" hidden>
-    <label>Sentido de lectura</label>
-    <div class="segmented" id="directionSegment">
-      <button data-value="ltr" type="button">Izquierda → Derecha</button>
-      <button data-value="rtl" type="button">Derecha → Izquierda</button>
-    </div>
-  </div>
-
-  <div class="setting-block">
-    <label>Atenuar pantalla <span id="dimValue"></span></label>
-    <input type="range" id="dimRange" min="0" max="70" step="5">
-  </div>
-
-  <div class="setting-block" id="autoScrollBlock">
-    <label class="switch-row">
-      <span>Auto-scroll</span>
-      <span class="switch"><input type="checkbox" id="autoScrollToggle"><span class="switch-track"></span></span>
-    </label>
-    <input type="range" id="autoScrollSpeed" min="10" max="120" step="10">
-  </div>
-
-  <div class="setting-block">
-    <label class="switch-row">
-      <span>Mostrar número de página</span>
-      <span class="switch"><input type="checkbox" id="pageCountToggle"><span class="switch-track"></span></span>
-    </label>
-  </div>
-
-  <button class="btn ghost" id="resetPrefs" type="button">Restablecer ajustes</button>
-
-  <div class="shortcuts-hint">
-    <h4>Atajos de teclado</h4>
-    <p><kbd>←</kbd> <kbd>→</kbd> avanzar/retroceder · <kbd>Espacio</kbd> bajar o pasar página · <kbd>F</kbd> pantalla completa · <kbd>Esc</kbd> cerrar panel</p>
-  </div>
+  <button class="btn ghost settings-reset" id="resetPrefs" type="button">Restablecer ajustes</button>
 </aside>
 
 <main id="readerMain">
