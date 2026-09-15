@@ -843,56 +843,11 @@ body.reader-mode[data-theme="white"] .reader-topbar{
 .switch input:checked + .switch-track{ background: var(--accent-soft); border-color: var(--accent); }
 .switch input:checked + .switch-track::before{ transform: translateX(18px); background: var(--accent); }
 
-/* ---- miniaturas ---- */
-.thumb-toggle{
-  position: fixed;
-  bottom: 18px;
-  right: 18px;
-  z-index: 50;
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: rgba(23,17,31,0.92);
-  border: 1px solid var(--line);
-  color: var(--paper);
-  font-size: 16px;
-  cursor: pointer;
-}
-.thumb-drawer{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  max-height: 40vh;
-  overflow-y: auto;
-  background: var(--bg-raised);
-  border-top: 1px solid var(--line);
-  z-index: 55;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 10px;
-  padding: 16px;
-}
-.thumb{
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-  padding: 0;
-}
-.thumb img{ width: 100%; aspect-ratio: 3/4.2; object-fit: cover; }
-.thumb span{
-  position: absolute; bottom: 2px; right: 4px;
-  font-size: 10px; color: var(--paper);
-  background: rgba(0,0,0,0.6);
-  padding: 1px 4px;
-  border-radius: 2px;
-}
-
 /* ---- volver arriba ---- */
 .scroll-top-btn{
   position: fixed;
   bottom: 18px;
-  right: 68px;
+  right: 18px;
   z-index: 50;
   width: 42px; height: 42px;
   border-radius: 50%;
