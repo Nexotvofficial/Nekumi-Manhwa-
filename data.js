@@ -41,22 +41,72 @@ function pageIsExtra(page) {
   return typeof page === 'string' ? false : Boolean(page.extra);
 }
 
-async function fetchCatalog() {
+// Guarda la última copia del catálogo que cargó bien. Si el repo se está
+// regenerando justo cuando alguien visita el sitio (deploy en curso, JSON
+// a mitad de escribirse, CDN todavía sin propagar, etc.), preferimos mostrar
+// esta copia "un poco vieja" antes que romper la página con un error.
+const CATALOG_CACHE_KEY = 'nekumi_catalog_cache_v1';
+
+function readCatalogCache() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || 'null');
+    return Array.isArray(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCatalogCache(list) {
+  try {
+    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(list));
+  } catch {
+    /* almacenamiento no disponible: no pasa nada, simplemente no habrá respaldo */
+  }
+}
+
+async function fetchOnce() {
   const res = await fetch(CATALOG_URL, { cache: 'no-store' });
-  if (!res.ok) throw new Error('No se pudo cargar el catálogo');
-  return res.json();
+  if (!res.ok) throw new Error(`No se pudo cargar el catálogo (HTTP ${res.status})`);
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error('mangas.json no tiene el formato esperado');
+  return data;
+}
+
+// Reintenta un par de veces antes de rendirse: cubre el caso típico de que
+// justo se esté re-generando mangas.json (Actions + jsDelivr/CDN con lag).
+// Si todos los intentos fallan, usa la última copia buena guardada en este
+// navegador en vez de dejar al usuario con la pantalla rota.
+async function fetchCatalog({ retries = 2, retryDelayMs = 700 } = {}) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const data = await fetchOnce();
+      writeCatalogCache(data);
+      return data;
+    } catch (e) {
+      lastError = e;
+      if (attempt < retries) await new Promise((r) => setTimeout(r, retryDelayMs * (attempt + 1)));
+    }
+  }
+  const cached = readCatalogCache();
+  if (cached) {
+    console.warn('[Nekumi] No se pudo actualizar el catálogo, mostrando la última copia guardada:', lastError);
+    return cached;
+  }
+  throw lastError || new Error('No se pudo cargar el catálogo');
 }
 
 function getMangaById(list, id) {
-  return list.find((m) => m.id === id) || null;
+  return (list || []).find((m) => m.id === id) || null;
 }
 
 function getChapter(manga, chapterId) {
+  if (!manga || !Array.isArray(manga.chapters)) return null;
   return manga.chapters.find((c) => c.id === chapterId) || null;
 }
 
 function sortedChapters(manga, dir = 'desc') {
-  const arr = [...manga.chapters].sort((a, b) => a.number - b.number);
+  const arr = [...(manga && manga.chapters ? manga.chapters : [])].sort((a, b) => a.number - b.number);
   return dir === 'desc' ? arr.reverse() : arr;
 }
 
@@ -202,4 +252,39 @@ function markChapterRead(mangaId, chapterId) {
 
 function qs(name) {
   return new URLSearchParams(window.location.search).get(name);
+}
+
+/* ---------- toasts (notificaciones flotantes) ---------- */
+
+function toastContainer() {
+  let el = document.getElementById('toastStack');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toastStack';
+    el.className = 'toast-stack';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function showToast(message, { icon = '', duration = 2600 } = {}) {
+  const stack = toastContainer();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `${icon ? `<span class="toast-icon">${icon}</span>` : ''}<span>${escapeHtml(message)}</span>`;
+  stack.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+  setTimeout(() => {
+    el.classList.remove('in');
+    el.addEventListener('transitionend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 500);
+  }, duration);
+}
+
+/* ---------- título al azar ("Sorprendeme") ---------- */
+
+function pickRandomManga(list) {
+  const arr = (list || []).filter((m) => (m.chapters || []).length > 0);
+  if (arr.length === 0) return null;
+  return arr[Math.floor(Math.random() * arr.length)];
 }
