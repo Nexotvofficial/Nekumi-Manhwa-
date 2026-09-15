@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=9"></script>
+<script src="site-guard.js?v=11"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Favoritos — Nekumi</title>
-<link rel="canonical" href="https://nekutoon.com/favorites.html">
-<link rel="stylesheet" href="style.css?v=9">
+<title>Tus favoritos — Nekumi</title>
+<meta name="description" content="Tus títulos marcados como favoritos.">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap nav-row">
     <a href="/" class="brand">NEKU<span>MI</span></a>
+    <div class="search">
+      <input type="search" id="favSearch" placeholder="Filtrar favoritos…" aria-label="Filtrar favoritos" autocomplete="off">
+    </div>
     <nav class="nav-links">
       <a href="/#novedades">Novedades</a>
       <a href="/#catalogo">Catálogo</a>
@@ -27,13 +30,23 @@
   </div>
 </header>
 
-<main class="wrap section">
-  <div class="section-head">
-    <h2>Tus favoritos</h2>
-    <span class="count" id="favCount"></span>
-  </div>
-  <div class="grid" id="favGrid"></div>
-  <p class="empty-state" id="favEmpty" hidden>Todavía no marcaste ningún título con ♡. Los favoritos se guardan en este navegador.</p>
+<main>
+  <section class="wrap section">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Tu colección personal</span>
+        <h2>♥ Tus favoritos</h2>
+      </div>
+      <span class="count" id="favCount"></span>
+    </div>
+    <div class="grid" id="favGrid">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+    <p class="empty-state" id="favEmpty" hidden>
+      Todavía no marcaste ningún título con ♡. Los favoritos se guardan en este navegador
+      (y en la nube si iniciás sesión).
+    </p>
+  </section>
 </main>
 
 <footer class="site-footer">
@@ -47,38 +60,52 @@
   </div>
 </footer>
 
-<script src="data.js?v=9"></script>
-<script src="app.js?v=9" defer></script>
+<script src="data.js?v=11"></script>
+<script src="app.js?v=11"></script>
+<script>
+/* página de favoritos: reutiliza cardHTML/bindFavButtons de app.js */
+(async function () {
+  const grid = document.getElementById('favGrid');
+  const empty = document.getElementById('favEmpty');
+  const count = document.getElementById('favCount');
+  let term = '';
+
+  let catalog;
+  try {
+    catalog = await fetchCatalog();
+  } catch {
+    grid.innerHTML = '';
+    empty.hidden = false;
+    empty.textContent = 'No pudimos cargar el catálogo. Probá recargar en unos segundos.';
+    return;
+  }
+
+  function render() {
+    const favIds = readFavorites();
+    const favs = catalog.filter((m) => favIds.includes(m.id) &&
+      (!term || (m.title || '').toLowerCase().includes(term)));
+    grid.innerHTML = favs.map(cardHTML).join('');
+    bindFavButtons(grid);
+    count.textContent = favs.length ? `${favs.length} título${favs.length > 1 ? 's' : ''}` : '';
+    empty.hidden = favs.length !== 0;
+  }
+
+  render();
+  document.addEventListener('nekumi:favorites-changed', render);
+  document.addEventListener('nekumi:synced', render);
+  document.getElementById('favSearch').addEventListener('input', (e) => {
+    term = e.target.value.trim().toLowerCase();
+    render();
+  });
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.querySelector('.nav').classList.toggle('menu-open');
+  });
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js?v=9"></script>
-<script>
-  window.addEventListener('load', async () => {
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.querySelector('.nav').classList.toggle('menu-open');
-    });
-    let catalog = [];
-    try { catalog = await fetchCatalog(); } catch { catalog = []; }
-    const favs = readFavorites();
-    const items = catalog.filter((m) => favs.includes(m.id));
-    document.getElementById('favCount').textContent = `${items.length} títulos`;
-    document.getElementById('favEmpty').hidden = items.length !== 0;
-    document.getElementById('favGrid').innerHTML = items.map(cardHTML).join('');
-    bindFavButtons(document.getElementById('favGrid'));
-    document.getElementById('favGrid').addEventListener('click', (e) => {
-      if (e.target.closest('.fav-toggle')) {
-        setTimeout(() => {
-          const stillFav = readFavorites();
-          document.getElementById('favGrid').innerHTML = items
-            .filter((m) => stillFav.includes(m.id))
-            .map(cardHTML).join('');
-          bindFavButtons(document.getElementById('favGrid'));
-        }, 0);
-      }
-    });
-  });
-</script>
+<script src="auth.js?v=11"></script>
 </body>
 </html>
