@@ -1,5 +1,7 @@
 /* ============================================================
-   NEKUMI — página de inicio
+   NEKUMI v11 — página de inicio
+   Hero carrusel + Trending rankeado + Últimas actualizaciones
+   + Sidebar de Populares con pestañas.
    ============================================================ */
 
 let CATALOG = [];
@@ -7,6 +9,13 @@ let activeGenre = 'Todos';
 let activeStatus = 'Todos';
 let onlyFavorites = false;
 let searchTerm = '';
+
+let HERO_PICKS = [];
+let heroIndex = 0;
+let heroTimer = null;
+let popularTab = 'semana';
+
+/* ---------- tarjeta ---------- */
 
 function cardHTML(manga) {
   if (!manga || !manga.id) return '';
@@ -46,31 +55,201 @@ function bindFavButtons(root) {
   });
 }
 
-function renderHeroStats(list) {
-  const el = document.getElementById('heroStats');
-  if (!el) return;
-  const totalTitles = list.length;
-  const totalChapters = list.reduce((sum, m) => sum + (m.total_chapters ?? (m.chapters || []).length), 0);
-  const genreCount = collectGenres(list).length - 1; // -1 por "Todos"
-  const ongoing = list.filter((m) => statusClass(m.status) === 'ongoing').length;
-  el.innerHTML = `
-    <span class="stat-pill"><strong>${totalTitles}</strong> títulos</span>
-    <span class="stat-pill"><strong>${totalChapters}</strong> capítulos</span>
-    <span class="stat-pill"><strong>${ongoing}</strong> en emisión</span>
-    <span class="stat-pill"><strong>${genreCount}</strong> géneros</span>
+/* ---------- tiempo relativo ---------- */
+
+function parseNekumiDate(dateStr) {
+  return new Date(String(dateStr || '').replace(' UTC', 'Z').replace(' ', 'T'));
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Date.now() - parseNekumiDate(dateStr).getTime();
+  if (isNaN(diff) || diff < 0) return '';
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'ahora mismo';
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  const days = Math.floor(h / 24);
+  if (days < 7) return `hace ${days} día${days > 1 ? 's' : ''}`;
+  const w = Math.floor(days / 7);
+  if (w < 5) return `hace ${w} sem`;
+  const mo = Math.floor(days / 30);
+  return `hace ${mo} mes${mo > 1 ? 'es' : ''}`;
+}
+
+/* ---------- HERO carrusel ---------- */
+
+function heroSlideHTML(m, i) {
+  const cover = m.cover_thumb || m.cover || '';
+  const chaps = sortedChapters(m, 'desc');
+  const latest = chaps[0];
+  const readHref = latest
+    ? `reader.html?id=${encodeURIComponent(m.id)}&chap=${encodeURIComponent(latest.id)}`
+    : `manga.html?id=${encodeURIComponent(m.id)}`;
+  return `
+    <article class="hero-slide ${i === 0 ? 'active' : ''}" data-slide="${i}">
+      <div class="hero-slide-bg" style="background-image:url('${escapeHtml(cover)}')"></div>
+      <div class="wrap hero-slide-inner">
+        <div class="hero-slide-cover">
+          ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(m.title)}">` : ''}
+        </div>
+        <div class="hero-slide-info">
+          <span class="hero-eyebrow">${m.featured ? '★ Destacado' : '🔥 En tendencia'}</span>
+          <h2 class="hero-slide-title">${escapeHtml(m.title || 'Sin título')}</h2>
+          <div class="hero-slide-meta">
+            ${m.rating ? `<span class="rating-inline">★ ${Number(m.rating).toFixed(1)}</span>` : ''}
+            <span>${escapeHtml(m.status || '')}</span>
+            <span>${m.total_chapters ?? (m.chapters || []).length} capítulos</span>
+          </div>
+          <div class="hero-slide-genres">
+            ${(m.genres || []).slice(0, 4).map((g) => `<span class="tag">${escapeHtml(g)}</span>`).join('')}
+          </div>
+          <div class="hero-ctas">
+            <a class="btn" href="${readHref}">▶ Leer ahora</a>
+            <a class="btn ghost" href="manga.html?id=${encodeURIComponent(m.id)}">Ver ficha</a>
+          </div>
+        </div>
+      </div>
+    </article>
   `;
 }
 
-function renderHeroStrip(list) {
-  const el = document.getElementById('heroStrip');
-  const picks = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
-  if (picks.length === 0) return;
-  el.innerHTML = picks.map((m) => `
-    <a href="manga.html?id=${encodeURIComponent(m.id)}" tabindex="-1">
-      <img src="${escapeHtml(m.cover_thumb || m.cover)}" alt="" loading="lazy">
-    </a>
+function goToSlide(i) {
+  if (HERO_PICKS.length === 0) return;
+  heroIndex = (i + HERO_PICKS.length) % HERO_PICKS.length;
+  document.querySelectorAll('.hero-slide').forEach((s, idx) => s.classList.toggle('active', idx === heroIndex));
+  document.querySelectorAll('.hero-dot').forEach((d, idx) => d.classList.toggle('active', idx === heroIndex));
+}
+
+function restartHeroTimer() {
+  clearInterval(heroTimer);
+  if (HERO_PICKS.length > 1) heroTimer = setInterval(() => goToSlide(heroIndex + 1), 6000);
+}
+
+function renderHero(list) {
+  const box = document.getElementById('heroSlides');
+  if (!box) return;
+  HERO_PICKS = [...list]
+    .sort((a, b) => ((b.featured ? 1 : 0) - (a.featured ? 1 : 0)) || ((b.rating || 0) - (a.rating || 0)))
+    .slice(0, 6);
+  if (HERO_PICKS.length === 0) { document.getElementById('heroCarousel').hidden = true; return; }
+  box.innerHTML = HERO_PICKS.map(heroSlideHTML).join('');
+  document.getElementById('heroDots').innerHTML = HERO_PICKS
+    .map((_, i) => `<button class="hero-dot ${i === 0 ? 'active' : ''}" data-slide="${i}" type="button" aria-label="Ir al destacado ${i + 1}"></button>`)
+    .join('');
+
+  document.getElementById('heroPrev').addEventListener('click', () => { goToSlide(heroIndex - 1); restartHeroTimer(); });
+  document.getElementById('heroNext').addEventListener('click', () => { goToSlide(heroIndex + 1); restartHeroTimer(); });
+  document.getElementById('heroDots').addEventListener('click', (e) => {
+    const dot = e.target.closest('.hero-dot');
+    if (dot) { goToSlide(Number(dot.dataset.slide)); restartHeroTimer(); }
+  });
+
+  const carousel = document.getElementById('heroCarousel');
+  carousel.addEventListener('mouseenter', () => clearInterval(heroTimer));
+  carousel.addEventListener('mouseleave', restartHeroTimer);
+  restartHeroTimer();
+}
+
+/* ---------- Trending ---------- */
+
+function renderTrending(list) {
+  const el = document.getElementById('trendingGrid');
+  if (!el) return;
+  const top = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
+  el.innerHTML = top.map((m, i) => `
+    <div class="trending-card">
+      <span class="rank-num">${i + 1}</span>
+      ${cardHTML(m)}
+    </div>
+  `).join('');
+  bindFavButtons(el);
+}
+
+/* ---------- Últimas actualizaciones ---------- */
+
+function latestItemHTML(m) {
+  const cover = m.cover_thumb || m.cover || '';
+  const chaps = sortedChapters(m, 'desc').slice(0, 3);
+  return `
+    <article class="latest-item">
+      <a class="latest-cover" href="manga.html?id=${encodeURIComponent(m.id)}">
+        ${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy">` : `<div class="cover-fallback">${escapeHtml((m.title || '?').slice(0, 1))}</div>`}
+      </a>
+      <div class="latest-info">
+        <a class="latest-title" href="manga.html?id=${encodeURIComponent(m.id)}">${escapeHtml(m.title || 'Sin título')}</a>
+        <div class="latest-chapters">
+          ${chaps.map((c) => `
+            <a class="latest-chap" href="reader.html?id=${encodeURIComponent(m.id)}&chap=${encodeURIComponent(c.id)}">
+              <span>Capítulo ${escapeHtml(String(c.number))}</span>
+              <span class="latest-time">${timeAgo(m.last_updated)}</span>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+      ${m.rating ? `<span class="latest-rating">★ ${Number(m.rating).toFixed(1)}</span>` : ''}
+    </article>
+  `;
+}
+
+function renderLatest(list) {
+  const el = document.getElementById('latestList');
+  if (!el) return;
+  const fresh = [...list]
+    .sort((a, b) => parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated))
+    .slice(0, 12);
+  el.innerHTML = fresh.map(latestItemHTML).join('');
+  document.getElementById('freshCount').textContent = `${fresh.length} títulos`;
+}
+
+/* ---------- Sidebar populares ---------- */
+
+function popularSorted(tab) {
+  const list = [...CATALOG];
+  if (tab === 'semana') {
+    return list.sort((a, b) =>
+      (parseNekumiDate(b.last_updated) - parseNekumiDate(a.last_updated)) || ((b.rating || 0) - (a.rating || 0))
+    ).slice(0, 10);
+  }
+  if (tab === 'mes') {
+    return list.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10);
+  }
+  return list.sort((a, b) =>
+    ((b.rating || 0) * 10 + (b.total_chapters || 0)) - ((a.rating || 0) * 10 + (a.total_chapters || 0))
+  ).slice(0, 10);
+}
+
+function renderPopular() {
+  const el = document.getElementById('popularList');
+  if (!el) return;
+  el.innerHTML = popularSorted(popularTab).map((m, i) => `
+    <li class="popular-item">
+      <span class="popular-rank ${i < 3 ? 'top' : ''}">${i + 1}</span>
+      <a class="popular-cover" href="manga.html?id=${encodeURIComponent(m.id)}">
+        <img src="${escapeHtml(m.cover_thumb || m.cover || '')}" alt="" loading="lazy">
+      </a>
+      <div class="popular-info">
+        <a class="popular-title" href="manga.html?id=${encodeURIComponent(m.id)}">${escapeHtml(m.title || 'Sin título')}</a>
+        <span class="popular-meta">${m.rating ? `★ ${Number(m.rating).toFixed(1)} · ` : ''}${escapeHtml((m.genres || []).slice(0, 2).join(', '))}</span>
+      </div>
+    </li>
   `).join('');
 }
+
+function bindPopularTabs() {
+  const tabs = document.getElementById('popularTabs');
+  if (!tabs) return;
+  tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.popular-tab');
+    if (!btn) return;
+    popularTab = btn.dataset.tab;
+    tabs.querySelectorAll('.popular-tab').forEach((b) => b.classList.toggle('active', b === btn));
+    renderPopular();
+  });
+}
+
+/* ---------- Seguir leyendo ---------- */
 
 function renderContinue(list) {
   const items = getAllProgress()
@@ -98,20 +277,7 @@ function renderContinue(list) {
   }).join('');
 }
 
-function renderFresh(list) {
-  const section = document.getElementById('novedades');
-  if (list.length <= MIN_TITLES_FOR_FRESH_SECTION) {
-    section.hidden = true;
-    return;
-  }
-  section.hidden = false;
-  const fresh = [...list]
-    .sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated))
-    .slice(0, 10);
-  document.getElementById('freshGrid').innerHTML = fresh.map(cardHTML).join('');
-  document.getElementById('freshCount').textContent = `${fresh.length} títulos`;
-  bindFavButtons(document.getElementById('freshGrid'));
-}
+/* ---------- Catálogo: chips + grid ---------- */
 
 function collectGenres(list) {
   const set = new Set();
@@ -153,8 +319,26 @@ function renderFullGrid() {
   bindFavButtons(document.getElementById('fullGrid'));
 }
 
+/* ---------- barra de aviso ---------- */
+
+function initTopbarAd() {
+  const bar = document.getElementById('topbarAd');
+  const btn = document.getElementById('topbarAdClose');
+  if (!bar || !btn) return;
+  try {
+    if (localStorage.getItem('nekumi_topbar_dismissed')) { bar.hidden = true; return; }
+  } catch { /* sin storage */ }
+  btn.addEventListener('click', () => {
+    bar.hidden = true;
+    try { localStorage.setItem('nekumi_topbar_dismissed', '1'); } catch { /* sin storage */ }
+  });
+}
+
+/* ---------- init ---------- */
+
 async function init() {
-  if (!document.getElementById('heroStrip')) return; // no es la página de inicio
+  if (!document.getElementById('heroSlides')) return;
+  initTopbarAd();
   try {
     CATALOG = await fetchCatalog();
   } catch (e) {
@@ -172,21 +356,11 @@ async function init() {
   const statuses = collectStatuses(CATALOG);
 
   function refreshGenreChips() {
-    renderChips('genreChips', genres, activeGenre, (v) => {
-      activeGenre = v;
-      refreshGenreChips();
-      renderFullGrid();
-    });
+    renderChips('genreChips', genres, activeGenre, (v) => { activeGenre = v; refreshGenreChips(); renderFullGrid(); });
   }
-
   function refreshStatusChips() {
-    renderChips('statusChips', statuses, activeStatus, (v) => {
-      activeStatus = v;
-      refreshStatusChips();
-      renderFullGrid();
-    });
+    renderChips('statusChips', statuses, activeStatus, (v) => { activeStatus = v; refreshStatusChips(); renderFullGrid(); });
   }
-
   function refreshFavChip() {
     const el = document.getElementById('favChip');
     el.classList.toggle('active', onlyFavorites);
@@ -204,10 +378,12 @@ async function init() {
     document.querySelector('.nav').classList.toggle('menu-open');
   });
 
-  renderHeroStats(CATALOG);
-  renderHeroStrip(CATALOG);
+  renderHero(CATALOG);
   renderContinue(CATALOG);
-  renderFresh(CATALOG);
+  renderTrending(CATALOG);
+  renderLatest(CATALOG);
+  renderPopular();
+  bindPopularTabs();
   refreshGenreChips();
   refreshStatusChips();
   renderFullGrid();
@@ -241,8 +417,7 @@ function renderSearchSuggestions() {
 }
 
 function hideSearchSuggestions() {
-  const box = document.getElementById('searchSuggestions');
-  box.hidden = true;
+  document.getElementById('searchSuggestions').hidden = true;
 }
 
 init();
