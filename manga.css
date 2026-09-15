@@ -1,8 +1,6 @@
 /* ============================================================
    NEKUMI — ficha del título (manga.html)
-   Se carga después de style.css y reutiliza sus variables y las
-   de home.css (--panel, --panel-line). No necesita tocar manga.js:
-   sólo re-viste las clases que ese archivo ya genera.
+   Se carga después de style.css y reutiliza sus variables.
    ============================================================ */
 
 :root{
@@ -10,11 +8,14 @@
   --panel-line: rgba(242,238,233,0.07);
 }
 
-/* ---------- cabecera con la portada difuminada de fondo ---------- */
+/* ============================================================
+   Cabecera
+   ============================================================ */
 .detail-hero{
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  border-bottom: 1px solid var(--line);
   margin-bottom: 26px;
 }
 .detail-hero-backdrop{
@@ -35,100 +36,306 @@
     linear-gradient(90deg, var(--bg) 6%, rgba(14,11,20,0.74) 55%, rgba(14,11,20,0.52) 100%),
     linear-gradient(0deg, var(--bg) 3%, rgba(14,11,20,0) 60%);
 }
+.detail-hero-inner{ padding-bottom: 42px; }
 
-.detail-back{
-  margin: 22px 0 14px;
-}
+.detail-back{ margin: 22px 0 18px; }
 
 .detail-head{
-  grid-template-columns: 240px 1fr;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
   gap: 36px;
   align-items: start;
   margin-bottom: 0;
-  padding-bottom: 44px;
 }
 .detail-cover{
   border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4.3;
+  background: var(--bg-raised);
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
 }
-.detail-title{ max-width: 16ch; }
+.detail-cover img{ width: 100%; height: 100%; object-fit: cover; }
+
+.detail-title{
+  font-family: var(--display);
+  font-size: clamp(40px, 5.5vw, 68px);
+  line-height: 0.94;
+  margin: 0 0 14px;
+  max-width: 18ch;
+}
 .detail-meta{
-  gap: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 13px;
 }
 .detail-meta > *{
   border: 1px solid var(--line);
   background: rgba(14,11,20,0.5);
   border-radius: 999px;
   padding: 4px 12px;
-  font-size: 13px;
 }
+.detail-meta .status{ font-weight: 600; }
+.detail-meta .status.ongoing{ color: var(--ongoing); }
+.detail-meta .status.finished{ color: var(--finished); }
+.detail-meta .rating-inline{ color: var(--accent); font-weight: 700; }
+
 .detail-synopsis{
   color: var(--muted);
+  max-width: 62ch;
+  margin: 0 0 8px;
   font-size: 15px;
 }
+.detail-synopsis.clamped{
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.synopsis-toggle{
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+  color: var(--accent);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.synopsis-toggle:hover{ text-decoration: underline; }
+
+.detail-genres{ display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
 .tag{
+  border: 1px solid var(--line);
   background: rgba(14,11,20,0.5);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 .tag:hover{ color: var(--paper); border-color: var(--accent); }
 
-/* ---------- lista de capítulos y similares dentro de paneles ---------- */
-.chapter-panel,
-.similar-section{
+.detail-ctas{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.detail-note{ color: var(--muted); margin: 0; font-size: 14.5px; }
+.fav-btn{ cursor: pointer; }
+.fav-btn.active{ color: var(--accent); border-color: var(--accent); }
+
+/* ============================================================
+   Dos columnas: capítulos + ficha lateral
+   ============================================================ */
+.detail-cols{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 26px;
+  align-items: start;
+  padding-bottom: 70px;
+}
+.detail-side{
+  position: sticky;
+  top: 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panel{
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: 8px;
-  padding: 20px 22px 12px;
-  margin-bottom: 22px;
+  padding: 20px 22px 18px;
 }
-.similar-section{
-  margin-top: 0;
-  padding-bottom: 24px;
+.panel-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
 }
-.chapter-list-head{
-  margin-bottom: 10px;
-}
-.chapter-list-head h2,
-.similar-section h2{
+.panel-head h2{
   font-family: var(--display);
   font-size: 30px;
-  margin: 0 0 0;
+  letter-spacing: 0.3px;
+  margin: 0;
 }
-.similar-section h2{ margin-bottom: 18px; }
 .sort-toggle{
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 5px 13px;
   background: var(--bg-raised);
+  color: var(--muted);
+  font-size: 12.5px;
+  padding: 5px 13px;
+  cursor: pointer;
 }
 .sort-toggle:hover{ color: var(--paper); border-color: var(--accent); }
 
+.chapter-tools{ margin-bottom: 12px; }
+.chapter-tools input{
+  width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--paper);
+  padding: 9px 13px;
+  font-size: 14px;
+  font-family: var(--body);
+}
+.chapter-tools input::placeholder{ color: var(--muted-dim); }
+.chapter-tools input:focus{ border-color: var(--accent); outline: none; }
+
+.read-progress{ margin-bottom: 14px; }
+.read-bar{
+  height: 4px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.read-bar span{ display: block; height: 100%; background: var(--accent); }
+.read-count{ font-size: 12.5px; color: var(--muted-dim); }
+
 .chapter-row{
+  display: flex;
+  align-items: center;
   gap: 14px;
-  padding: 13px 10px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--panel-line);
   border-radius: 5px;
 }
 .chapter-row:last-child{ border-bottom: none; }
 .chapter-row:hover{ background: var(--bg-raised-2); }
 .chapter-num{
-  width: 48px;
+  font-family: var(--display);
   font-size: 24px;
+  color: var(--muted-dim);
+  width: 48px;
   text-align: right;
+  flex-shrink: 0;
 }
-.chapter-row.is-read{ opacity: 0.72; }
+.chapter-info{ min-width: 0; }
+.chapter-info h4{ margin: 0 0 2px; font-size: 15px; font-weight: 600; }
+.chapter-info p{ margin: 0; font-size: 12.5px; color: var(--muted-dim); }
+.chapter-row.is-read{ opacity: 0.7; }
+.chapter-row.is-read .chapter-num,
+.chapter-row.is-read h4{ color: var(--muted-dim); }
+.chapter-row.is-current{
+  background: var(--accent-soft);
+  border-bottom-color: transparent;
+}
+.chapter-row .read-mark{
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.chapter-row .read-check{
+  margin-left: auto;
+  color: var(--ongoing);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.chapter-empty{ color: var(--muted-dim); font-size: 14px; padding: 18px 4px; margin: 0; }
 
-/* ---------- barra fija para retomar la lectura en celular ---------- */
-@media (max-width: 720px){
-  .detail-head{
-    grid-template-columns: 120px 1fr;
-    gap: 18px;
-    padding-bottom: 28px;
+/* ---------- panel lateral ---------- */
+.info-rows{ display: flex; flex-direction: column; }
+.info-row{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--panel-line);
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.info-row:last-child{ border-bottom: none; }
+.info-row strong{ color: var(--paper); font-weight: 600; text-align: right; }
+
+.similar-list{ list-style: none; margin: 0; padding: 0; }
+.similar-row{
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+.similar-row:last-child{ border-bottom: none; }
+.similar-cover{
+  display: block;
+  aspect-ratio: 3 / 4.3;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--bg-raised);
+}
+.similar-cover img{ width: 100%; height: 100%; object-fit: cover; }
+.similar-body{ min-width: 0; }
+.similar-title{
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.similar-title:hover{ color: var(--accent); }
+.similar-sub{
+  display: block;
+  font-size: 12px;
+  color: var(--muted-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.similar-rating{ font-size: 12px; color: var(--accent); font-weight: 600; }
+
+/* ============================================================
+   Barra fija de lectura (solo celular)
+   ============================================================ */
+.mobile-read-bar{ display: none; }
+
+@media (max-width: 860px){
+  .detail-cols{
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: 96px; /* espacio para la barra fija */
   }
+  .detail-side{ position: static; }
+  .detail-head{ grid-template-columns: 116px minmax(0, 1fr); gap: 18px; }
+  .detail-title{ font-size: clamp(30px, 8vw, 44px); margin-bottom: 10px; }
   .detail-hero-backdrop{ opacity: 0.3; }
-  .chapter-panel,
-  .similar-section{ padding: 16px 14px 10px; border-radius: 6px; }
-  .chapter-list-head h2,
-  .similar-section h2{ font-size: 26px; }
+  .detail-hero-inner{ padding-bottom: 28px; }
+  .panel{ padding: 16px 14px 14px; border-radius: 6px; }
+  .panel-head h2{ font-size: 26px; }
   .chapter-num{ width: 40px; font-size: 20px; }
+
+  /* el CTA principal vive en la barra fija, así que en el hero sobra */
+  .detail-ctas .btn:not(.fav-btn){ display: none; }
+
+  .mobile-read-bar{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 60;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(14,11,20,0.94);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+  }
+  .mobile-read-bar .btn{
+    flex: 1;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fav-mobile{
+    width: 44px;
+    height: 42px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .fav-mobile.active{ color: var(--accent); border-color: var(--accent); }
 }
