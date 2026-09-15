@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=9"></script>
+<script src="site-guard.js?v=10"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Política DMCA — Nekumi</title>
+<meta name="description" content="Cómo reportar contenido con derechos de autor en Nekumi.">
 <link rel="canonical" href="https://nekutoon.com/dmca.html">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="legal.css?v=10">
 </head>
 <body>
 
@@ -14,53 +16,70 @@
   <div class="wrap nav-row">
     <a href="/" class="brand">NEKU<span>MI</span></a>
     <nav class="nav-links">
-      <a href="/#novedades">Novedades</a>
+      <a href="/#tendencias">Tendencias</a>
+      <a href="/#actualizaciones">Actualizaciones</a>
       <a href="/#catalogo">Catálogo</a>
       <a href="favorites.html">Favoritos</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
   </div>
   <div class="nav-mobile">
-    <a href="/#novedades">Novedades</a>
+    <a href="/#tendencias">Tendencias</a>
+    <a href="/#actualizaciones">Actualizaciones</a>
     <a href="/#catalogo">Catálogo</a>
     <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
 <main class="wrap legal-page">
-  <h1>Política de Derechos de Autor (DMCA)</h1>
-  <p class="legal-updated">Última actualización: <!-- TODO: poné la fecha real --> 15 de septiembre de 2026</p>
+  <h1>Política de derechos de autor (DMCA)</h1>
+  <p class="legal-updated">Última actualización: 15 de septiembre de 2026</p>
 
-  <p>Nekumi respeta los derechos de propiedad intelectual de terceros y espera que las personas que usan el sitio hagan lo mismo. Ante cualquier reclamo válido de que un contenido alojado o enlazado desde este sitio infringe derechos de autor, actuamos para retirarlo o deshabilitar el acceso, conforme a la <em>Digital Millennium Copyright Act</em> (DMCA) de Estados Unidos y a las leyes de derechos de autor aplicables.</p>
+  <p>Nekumi respeta los derechos de propiedad intelectual de terceros y espera lo mismo de quienes usan el sitio. Ante un reclamo válido de que un contenido alojado o enlazado desde acá infringe derechos de autor, lo retiramos o deshabilitamos el acceso, conforme a la <em>Digital Millennium Copyright Act</em> (DMCA) de Estados Unidos y a las leyes de derechos de autor aplicables.</p>
 
-  <h2>Cómo enviar una notificación de retiro</h2>
+  <nav class="legal-toc" aria-label="Contenido de la página">
+    <h2>En esta página</h2>
+    <ol>
+      <li><a href="#notificacion">Cómo enviar una notificación</a></li>
+      <li><a href="#agente">Agente designado</a></li>
+      <li><a href="#proceso">Qué hacemos al recibirla</a></li>
+      <li><a href="#contranotificacion">Contranotificación</a></li>
+      <li><a href="#reincidentes">Reincidentes</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="notificacion">Cómo enviar una notificación de retiro</h2>
   <p>Si sos titular de derechos de autor (o su representante autorizado) y creés que un contenido de Nekumi infringe tus derechos, enviá una notificación por escrito a nuestro agente designado que incluya, como mínimo, todo lo siguiente (requisito del 17 U.S.C. § 512(c)(3)):</p>
   <ul>
     <li>Firma física o electrónica de la persona autorizada a actuar en nombre del titular del derecho.</li>
     <li>Identificación de la obra protegida que se dice infringida (o una lista representativa, si son varias).</li>
-    <li>Identificación del material que se dice infringe, con suficiente información para ubicarlo (URL o título/capítulo exacto).</li>
-    <li>Información de contacto: nombre, dirección, teléfono y correo electrónico.</li>
-    <li>Una declaración de que crees de buena fe que el uso del material no está autorizado por el titular, su agente o la ley.</li>
-    <li>Una declaración, bajo pena de perjurio, de que la información en la notificación es exacta y de que estás autorizado a actuar en nombre del titular.</li>
+    <li>Identificación del material que se dice infringe, con información suficiente para ubicarlo: URL, o título y capítulo exactos.</li>
+    <li>Tus datos de contacto: nombre, dirección, teléfono y correo electrónico.</li>
+    <li>Una declaración de que creés de buena fe que el uso del material no está autorizado por el titular, su agente o la ley.</li>
+    <li>Una declaración, bajo pena de perjurio, de que la información es exacta y de que estás autorizado a actuar en nombre del titular.</li>
   </ul>
+  <p>Las notificaciones incompletas pueden demorar el retiro: si falta la identificación exacta del material, no podemos ubicarlo.</p>
 
+  <h2 id="agente">Agente designado para notificaciones DMCA</h2>
   <div class="legal-box">
-    <strong>Agente designado para notificaciones DMCA</strong>
-    <p style="margin:8px 0 0">
-      Nombre: <!-- TODO --><br>
-      Correo: <!-- TODO: ej. dmca@nekutoon.com --><br>
-      Dirección postal: <!-- TODO, requerida si vas a registrarte en el U.S. Copyright Office -->
+    <strong>Datos del agente</strong>
+    <p>
+      Nombre: <span class="todo">completar antes de publicar</span><br>
+      Correo: <span class="todo">completar antes de publicar</span> (por ejemplo, dmca@nekutoon.com)<br>
+      Dirección postal: <span class="todo">completar antes de publicar</span> — es obligatoria si vas a registrar el agente ante el U.S. Copyright Office
     </p>
   </div>
+  <p>Registrar al agente en el U.S. Copyright Office es lo que habilita el puerto seguro del § 512. Sin ese registro, publicar los datos acá ayuda, pero no alcanza.</p>
 
-  <h2>Qué hacemos al recibir una notificación válida</h2>
-  <p>Retiramos o deshabilitamos el acceso al material señalado con prontitud, y avisamos a la persona que lo subió (cuando corresponda) para que pueda presentar una contranotificación si considera que el retiro fue un error.</p>
+  <h2 id="proceso">Qué hacemos al recibir una notificación válida</h2>
+  <p>Retiramos o deshabilitamos el acceso al material señalado con prontitud, y avisamos a quien lo subió (cuando corresponda) para que pueda presentar una contranotificación si considera que el retiro fue un error.</p>
 
-  <h2>Contranotificación</h2>
-  <p>Si tu contenido fue retirado y creés que fue por error o identificación incorrecta, podés enviar una contranotificación con: tu firma, identificación del material retirado y su ubicación antes del retiro, una declaración bajo pena de perjurio de que crees de buena fe que el retiro fue un error, tus datos de contacto, y una declaración de que aceptás la jurisdicción del tribunal federal correspondiente.</p>
+  <h2 id="contranotificacion">Contranotificación</h2>
+  <p>Si tu contenido fue retirado y creés que fue por error o por una identificación incorrecta, podés enviar una contranotificación con: tu firma, la identificación del material retirado y dónde estaba antes del retiro, una declaración bajo pena de perjurio de que creés de buena fe que el retiro fue un error, tus datos de contacto, y una declaración de que aceptás la jurisdicción del tribunal federal correspondiente.</p>
 
-  <h2>Reincidentes</h2>
-  <p>Nekumi puede eliminar contenido y restringir el acceso de cuentas asociadas a infracciones repetidas de derechos de autor, a nuestro criterio.</p>
+  <h2 id="reincidentes">Reincidentes</h2>
+  <p>Nekumi puede eliminar contenido y restringir el acceso de cuentas asociadas a infracciones repetidas de derechos de autor.</p>
+
 </main>
 
 <footer class="site-footer">
@@ -74,7 +93,7 @@
   </div>
 </footer>
 
-<script src="data.js?v=9"></script>
+<script src="data.js?v=10"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.querySelector('.nav').classList.toggle('menu-open');
