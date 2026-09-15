@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="site-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Leyendo — Nekumi</title>
+<link rel="canonical" href="https://nekutoon.com/reader.html">
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="reader-mode">
@@ -38,8 +40,18 @@
     </div>
   </div>
 
+  <div class="setting-block">
+    <label>Tema de lectura</label>
+    <div class="segmented" id="themeSegment">
+      <button data-value="black" type="button">Negro</button>
+      <button data-value="charcoal" type="button">Gris</button>
+      <button data-value="sepia" type="button">Sepia</button>
+      <button data-value="white" type="button">Blanco</button>
+    </div>
+  </div>
+
   <div class="setting-block" id="widthBlock">
-    <label>Ancho de la tira <span id="widthValue"></span></label>
+    <label id="widthLabel">Ancho de la tira <span id="widthValue"></span></label>
     <input type="range" id="widthRange" min="60" max="160" step="5">
   </div>
 
@@ -77,6 +89,11 @@
   </div>
 
   <button class="btn ghost" id="resetPrefs" type="button">Restablecer ajustes</button>
+
+  <div class="shortcuts-hint">
+    <h4>Atajos de teclado</h4>
+    <p><kbd>←</kbd> <kbd>→</kbd> avanzar/retroceder · <kbd>Espacio</kbd> bajar o pasar página · <kbd>F</kbd> pantalla completa · <kbd>Esc</kbd> cerrar panel</p>
+  </div>
 </aside>
 
 <main id="readerMain">
@@ -84,6 +101,7 @@
 </main>
 
 <button class="thumb-toggle" id="thumbToggle" type="button" title="Ver todas las páginas">▤</button>
+<button class="scroll-top-btn" id="scrollTopBtn" type="button" title="Volver arriba" hidden>↑</button>
 <div class="thumb-drawer" id="thumbDrawer" hidden></div>
 
 <div class="reader-bottombar" id="bottombar">
@@ -93,5 +111,10 @@
 
 <script src="data.js"></script>
 <script src="reader.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>
