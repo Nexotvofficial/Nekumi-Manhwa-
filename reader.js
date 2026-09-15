@@ -49,12 +49,21 @@ function updateProgressFromScroll() {
   const fraction = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
   document.getElementById('progressFill').style.width = `${fraction * 100}%`;
   saveProgress(MANGA.id, CHAPTER.id, fraction);
+  if (fraction >= 0.96) markChapterRead(MANGA.id, CHAPTER.id);
+  toggleScrollTopBtn(window.scrollY);
 }
 
 function updateProgressFromPage(index, total) {
   const fraction = total > 1 ? index / (total - 1) : 1;
   document.getElementById('progressFill').style.width = `${fraction * 100}%`;
   saveProgress(MANGA.id, CHAPTER.id, fraction);
+  if (fraction >= 0.999) markChapterRead(MANGA.id, CHAPTER.id);
+}
+
+function toggleScrollTopBtn(y) {
+  const btn = document.getElementById('scrollTopBtn');
+  if (!btn) return;
+  btn.hidden = y < 900;
 }
 
 /* ---------- render: modo tira continua ---------- */
@@ -224,15 +233,28 @@ function stopAutoScroll() {
 
 /* ---------- panel de ajustes ---------- */
 
+const READER_THEMES = {
+  black:    { bg: '#08060B', surface: '#08060B' },
+  charcoal: { bg: '#232228', surface: '#232228' },
+  sepia:    { bg: '#E7DEC8', surface: '#E7DEC8' },
+  white:    { bg: '#F5F5F5', surface: '#F5F5F5' },
+};
+
 function applyPrefsToDOM() {
   document.documentElement.style.setProperty('--reader-width', `${PREFS.width}%`);
   document.documentElement.style.setProperty('--reader-gap', `${PREFS.gap}px`);
   document.getElementById('dimOverlay').style.opacity = PREFS.dim / 100;
 
+  const theme = READER_THEMES[PREFS.theme] || READER_THEMES.black;
+  document.documentElement.style.setProperty('--reader-bg', theme.bg);
+  document.body.dataset.theme = PREFS.theme;
+
   document.querySelectorAll('#modeSegment button').forEach((b) => b.classList.toggle('active', b.dataset.value === PREFS.mode));
   document.querySelectorAll('#directionSegment button').forEach((b) => b.classList.toggle('active', b.dataset.value === PREFS.direction));
+  document.querySelectorAll('#themeSegment button').forEach((b) => b.classList.toggle('active', b.dataset.value === PREFS.theme));
 
-  document.getElementById('widthBlock').hidden = PREFS.mode !== 'strip';
+  document.getElementById('widthBlock').hidden = false;
+  document.getElementById('widthLabel').firstChild.textContent = PREFS.mode === 'strip' ? 'Ancho de la tira ' : 'Zoom de página ';
   document.getElementById('gapBlock').hidden = PREFS.mode !== 'strip';
   document.getElementById('autoScrollBlock').hidden = PREFS.mode !== 'strip';
   document.getElementById('directionBlock').hidden = PREFS.mode !== 'paged';
@@ -272,6 +294,13 @@ function bindSettingsPanel() {
     const btn = e.target.closest('button');
     if (!btn) return;
     updatePref('direction', btn.dataset.value);
+    applyPrefsToDOM();
+  });
+
+  document.getElementById('themeSegment').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    updatePref('theme', btn.dataset.value);
     applyPrefsToDOM();
   });
 
@@ -367,6 +396,10 @@ async function init() {
     drawer.hidden = !drawer.hidden;
   });
   renderThumbDrawer();
+
+  document.getElementById('scrollTopBtn').addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
   bindSettingsPanel();
   applyPrefsToDOM();
