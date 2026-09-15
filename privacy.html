@@ -1,85 +1,76 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js"></script>
+<script src="site-guard.js?v=9"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Política DMCA — Nekumi</title>
-<link rel="canonical" href="https://nekutoon.com/dmca.html">
-<link rel="stylesheet" href="style.css">
+<title>Privacidad — Nekumi</title>
+<link rel="canonical" href="https://nekutoon.com/privacy.html">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap nav-row">
-    <a href="index.html" class="brand">NEKU<span>MI</span></a>
+    <a href="/" class="brand">NEKU<span>MI</span></a>
     <nav class="nav-links">
-      <a href="index.html#novedades">Novedades</a>
-      <a href="index.html#catalogo">Catálogo</a>
+      <a href="/#novedades">Novedades</a>
+      <a href="/#catalogo">Catálogo</a>
       <a href="favorites.html">Favoritos</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
   </div>
   <div class="nav-mobile">
-    <a href="index.html#novedades">Novedades</a>
-    <a href="index.html#catalogo">Catálogo</a>
+    <a href="/#novedades">Novedades</a>
+    <a href="/#catalogo">Catálogo</a>
     <a href="favorites.html">Favoritos</a>
   </div>
 </header>
 
 <main class="wrap legal-page">
-  <h1>Política de Derechos de Autor (DMCA)</h1>
-  <p class="legal-updated">Última actualización: <!-- TODO: poné la fecha real --> 15 de septiembre de 2026</p>
+  <h1>Política de Privacidad</h1>
+  <p class="legal-updated">Última actualización: 15 de septiembre de 2026</p>
 
-  <p>Nekumi respeta los derechos de propiedad intelectual de terceros y espera que las personas que usan el sitio hagan lo mismo. Ante cualquier reclamo válido de que un contenido alojado o enlazado desde este sitio infringe derechos de autor, actuamos para retirarlo o deshabilitar el acceso, conforme a la <em>Digital Millennium Copyright Act</em> (DMCA) de Estados Unidos y a las leyes de derechos de autor aplicables.</p>
+  <p>Esta política explica qué datos maneja Nekumi y para qué.</p>
 
-  <h2>Cómo enviar una notificación de retiro</h2>
-  <p>Si sos titular de derechos de autor (o su representante autorizado) y creés que un contenido de Nekumi infringe tus derechos, enviá una notificación por escrito a nuestro agente designado que incluya, como mínimo, todo lo siguiente (requisito del 17 U.S.C. § 512(c)(3)):</p>
+  <h2>Qué guardamos y dónde</h2>
   <ul>
-    <li>Firma física o electrónica de la persona autorizada a actuar en nombre del titular del derecho.</li>
-    <li>Identificación de la obra protegida que se dice infringida (o una lista representativa, si son varias).</li>
-    <li>Identificación del material que se dice infringe, con suficiente información para ubicarlo (URL o título/capítulo exacto).</li>
-    <li>Información de contacto: nombre, dirección, teléfono y correo electrónico.</li>
-    <li>Una declaración de que crees de buena fe que el uso del material no está autorizado por el titular, su agente o la ley.</li>
-    <li>Una declaración, bajo pena de perjurio, de que la información en la notificación es exacta y de que estás autorizado a actuar en nombre del titular.</li>
+    <li><strong>En tu navegador (localStorage):</strong> favoritos, progreso de lectura, capítulos leídos y preferencias del lector (tema, ancho de tira, etc.). No sale de tu dispositivo salvo que inicies sesión.</li>
+    <li><strong>Si iniciás sesión (Firebase Authentication):</strong> tu correo electrónico y un identificador de usuario, para poder sincronizar favoritos y progreso entre dispositivos. Este dato lo procesa Google/Firebase como nuestro proveedor.</li>
+    <li><strong>Firestore (base de datos en la nube):</strong> guarda la copia sincronizada de tus favoritos, progreso y capítulos leídos asociada a tu cuenta.</li>
+    <li><strong>Analítica (Firebase Analytics), si está activa:</strong> datos de uso agregados (páginas vistas, dispositivo aproximado) para entender cómo se usa el sitio. No incluye contraseñas.</li>
+    <li><strong>Publicidad de terceros:</strong> si el sitio muestra anuncios, el proveedor de anuncios puede usar cookies o identificadores propios para personalizarlos. Consultá la política de privacidad de ese proveedor para más detalle.</li>
   </ul>
 
-  <div class="legal-box">
-    <strong>Agente designado para notificaciones DMCA</strong>
-    <p style="margin:8px 0 0">
-      Nombre: <!-- TODO --><br>
-      Correo: <!-- TODO: ej. dmca@nekutoon.com --><br>
-      Dirección postal: <!-- TODO, requerida si vas a registrarte en el U.S. Copyright Office -->
-    </p>
-  </div>
+  <h2>Qué NO hacemos</h2>
+  <p>No vendemos tus datos personales. No guardamos tu contraseña en texto plano (Firebase la gestiona de forma cifrada). No compartimos tu correo con nadie fuera de lo necesario para operar el login.</p>
 
-  <p>Recomendación: si el sitio crece, conviene registrar formalmente a tu agente en el <a href="https://dmca.copyright.gov/osp/publicRecord/" target="_blank" rel="noopener">Directorio de Agentes DMCA del U.S. Copyright Office</a>. Es gratis y refuerza la protección del "puerto seguro" (<em>safe harbor</em>) ante reclamos.</p>
+  <h2>Tus opciones</h2>
+  <ul>
+    <li>Podés usar el sitio sin crear cuenta: todo funciona igual, solo guardado en tu navegador.</li>
+    <li>Podés borrar tus datos locales en cualquier momento limpiando el almacenamiento del sitio desde la configuración de tu navegador.</li>
+    <li>Podés pedir que eliminemos tu cuenta y los datos asociados escribiendo a <!-- TODO: correo de contacto -->.</li>
+  </ul>
 
-  <h2>Qué hacemos al recibir una notificación válida</h2>
-  <p>Retiramos o deshabilitamos el acceso al material señalado con prontitud, y avisamos a la persona que lo subió (cuando corresponda) para que pueda presentar una contranotificación si considera que el retiro fue un error.</p>
+  <h2>Cookies</h2>
+  <p>Usamos almacenamiento local para preferencias y, si hay anuncios activos, es posible que las redes publicitarias usen cookies propias. Te mostramos un aviso al entrar por primera vez con más detalle.</p>
 
-  <h2>Contranotificación</h2>
-  <p>Si tu contenido fue retirado y creés que fue por error o identificación incorrecta, podés enviar una contranotificación con: tu firma, identificación del material retirado y su ubicación antes del retiro, una declaración bajo pena de perjurio de que crees de buena fe que el retiro fue un error, tus datos de contacto, y una declaración de que aceptás la jurisdicción del tribunal federal correspondiente.</p>
-
-  <h2>Reincidentes</h2>
-  <p>Nekumi puede eliminar contenido y restringir el acceso de cuentas asociadas a infracciones repetidas de derechos de autor, a nuestro criterio.</p>
-
-  <h2>Aviso importante</h2>
-  <p>Esta página es una plantilla informativa y no constituye asesoría legal. Antes de publicarla como política oficial, revisala (o hacela revisar por un abogado) y completá los datos marcados como <!-- TODO -->.</p>
+  <h2>Contacto</h2>
+  <p>Dudas sobre esta política: <!-- TODO: correo de contacto -->.</p>
 </main>
 
 <footer class="site-footer">
   <div class="wrap footer-row">
     <span>Nekumi · catálogo generado automáticamente desde el repositorio.</span>
     <nav class="footer-links">
-      <a href="dmca.html" class="current">DMCA</a>
-      <a href="privacy.html">Privacidad</a>
+      <a href="dmca.html">DMCA</a>
+      <a href="privacy.html" class="current">Privacidad</a>
       <a href="terms.html">Términos</a>
     </nav>
   </div>
 </footer>
 
-<script src="data.js"></script>
+<script src="data.js?v=9"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.querySelector('.nav').classList.toggle('menu-open');
