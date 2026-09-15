@@ -30,34 +30,38 @@ function renderChapterList(manga) {
 
 function renderDetail(manga) {
   document.title = `${manga.title} — Nekumi`;
+  const chapters = manga.chapters || [];
   const sClass = statusClass(manga.status);
   const firstChap = sortedChapters(manga, 'asc')[0];
   const progress = getProgress(manga.id);
   const continueChap = progress ? getChapter(manga, progress.chapterId) : null;
   const fav = isFavorite(manga.id);
+  const cover = manga.cover || manga.cover_thumb || '';
 
   document.getElementById('mainContent').innerHTML = `
     <a class="detail-back" href="index.html">← Volver al catálogo</a>
     <div class="detail-head">
       <div class="detail-cover">
-        <img src="${escapeHtml(manga.cover)}" alt="Portada de ${escapeHtml(manga.title)}">
+        ${cover ? `<img src="${escapeHtml(cover)}" alt="Portada de ${escapeHtml(manga.title)}">` : ''}
       </div>
       <div>
         <div class="detail-title-row">
-          <h1 class="detail-title">${escapeHtml(manga.title)}</h1>
+          <h1 class="detail-title">${escapeHtml(manga.title || 'Sin título')}</h1>
           <button class="fav-toggle static" id="detailFav" type="button" title="Favorito">${fav ? '♥' : '♡'}</button>
         </div>
         <div class="detail-meta">
-          <span class="status ${sClass}">${escapeHtml(manga.status)}</span>
-          <span>${escapeHtml(manga.category)}</span>
+          <span class="status ${sClass}">${escapeHtml(manga.status || '')}</span>
+          <span>${escapeHtml(manga.category || '')}</span>
           ${manga.rating ? `<span class="rating-inline">★ ${Number(manga.rating).toFixed(1)}</span>` : ''}
-          <span>${manga.total_chapters ?? manga.chapters.length} capítulos</span>
+          <span>${manga.total_chapters ?? chapters.length} capítulos</span>
         </div>
-        <p class="detail-synopsis">${escapeHtml(manga.synopsis)}</p>
+        <p class="detail-synopsis">${escapeHtml(manga.synopsis || '')}</p>
         <div class="detail-genres">
           ${(manga.genres || []).map((g) => `<span class="tag">${escapeHtml(g)}</span>`).join('')}
         </div>
-        ${continueChap
+        ${chapters.length === 0
+          ? `<p class="setting-hint">Todavía no hay capítulos publicados para este título.</p>`
+          : continueChap
           ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(continueChap.id)}">Continuar: ${escapeHtml(continueChap.title)}</a>`
           : firstChap
           ? `<a class="btn" href="reader.html?id=${encodeURIComponent(manga.id)}&chap=${encodeURIComponent(firstChap.id)}">Leer desde el capítulo 1</a>`
@@ -115,7 +119,12 @@ async function init() {
     catalog = await fetchCatalog();
   } catch {
     document.getElementById('mainContent').innerHTML = `
-      <div class="error-state"><h3>No pudimos cargar el catálogo</h3></div>`;
+      <div class="error-state">
+        <h3>No pudimos cargar el catálogo</h3>
+        <p>Probá de nuevo en unos segundos.</p>
+        <button class="btn" id="retryLoadBtn" type="button">Reintentar</button>
+      </div>`;
+    document.getElementById('retryLoadBtn').addEventListener('click', () => window.location.reload());
     return;
   }
 
