@@ -1,46 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script src="site-guard.js?v=10"></script>
+<script src="site-guard.js?v=11"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="pageTitle">Leyendo — Nekumi</title>
-<link rel="canonical" href="https://nekutoon.com/reader.html">
-<link rel="stylesheet" href="style.css?v=10">
+<title>Lector — Nekumi</title>
+<meta name="description" content="Lector de tira vertical.">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body class="reader-mode">
 
+<div class="progress-rail"><span id="progressFill"></span></div>
 <div class="dim-overlay" id="dimOverlay"></div>
 
-<div class="progress-rail"><span id="progressFill"></span></div>
-
-<div class="reader-topbar" id="topbar">
+<header class="reader-topbar" id="topbar">
   <a class="r-back" id="backLink" href="/">← Volver</a>
   <div class="r-title-block">
     <span class="r-title" id="readerTitle">Cargando…</span>
     <span class="r-pagecount" id="pageCounter"></span>
   </div>
+  <select id="chapterSelect" aria-label="Elegir capítulo"></select>
   <button class="fav-toggle static" id="favBtn" type="button" title="Favorito">♡</button>
-  <select id="chapterSelect" aria-label="Cambiar de capítulo"></select>
-  <button class="icon-btn" id="settingsBtn" type="button" aria-label="Ajustes de lectura" title="Ajustes">⚙</button>
-  <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
-</div>
+  <button class="icon-btn" id="settingsBtn" type="button" aria-label="Ajustes">⚙</button>
+  <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa">⛶</button>
+</header>
+
+<main id="readerMain">
+  <div class="loading-state">Cargando páginas…</div>
+</main>
+
+<nav class="reader-bottombar" id="bottombar">
+  <button id="prevBtn" type="button">← Anterior</button>
+  <button id="nextBtn" type="button">Siguiente →</button>
+</nav>
 
 <div class="settings-backdrop" id="settingsBackdrop" hidden></div>
 <aside class="settings-drawer" id="settingsDrawer" hidden>
   <div class="settings-head">
     <h3>⚙ Ajustes</h3>
-    <button class="icon-btn" id="closeSettings" type="button" aria-label="Cerrar">✕</button>
+    <button class="icon-btn" id="closeSettings" type="button" aria-label="Cerrar ajustes">✕</button>
   </div>
 
   <div class="settings-tabs" id="settingsTabs">
-    <button class="settings-tab active" data-tab="lectura" type="button"><span>📖</span> Lectura</button>
-    <button class="settings-tab" data-tab="pantalla" type="button"><span>🌓</span> Pantalla</button>
-    <button class="settings-tab" data-tab="ayuda" type="button"><span>?</span> Ayuda</button>
+    <button class="settings-tab active" data-tab="lectura" type="button"><span>📖</span>Lectura</button>
+    <button class="settings-tab" data-tab="pantalla" type="button"><span>🌓</span>Pantalla</button>
+    <button class="settings-tab" data-tab="ayuda" type="button"><span>?</span>Ayuda</button>
   </div>
 
   <div class="settings-tab-panel" data-tab-panel="lectura">
-
     <div class="setting-block">
       <label>Modo de lectura</label>
       <div class="segmented" id="modeSegment">
@@ -48,56 +55,51 @@
         <button data-value="paged" type="button">Por páginas</button>
       </div>
     </div>
-
     <div class="setting-block" id="widthBlock">
       <label id="widthLabel">Ancho de la tira <span id="widthValue"></span></label>
       <div class="preset-grid" id="widthPresets">
-        <button data-value="320" type="button">320px</button>
-        <button data-value="360" type="button">360px</button>
-        <button data-value="400" type="button">400px</button>
-        <button data-value="440" type="button">440px</button>
         <button data-value="480" type="button">480px</button>
-        <button data-value="540" type="button">540px</button>
-        <button data-value="760" type="button">Defecto</button>
         <button data-value="600" type="button">600px</button>
-        <button data-value="660" type="button">660px</button>
-        <button data-value="720" type="button">720px</button>
-        <button data-value="780" type="button">780px</button>
-        <button data-value="840" type="button">840px</button>
+        <button data-value="760" type="button">760px</button>
         <button data-value="900" type="button">900px</button>
-        <button data-value="960" type="button">960px</button>
-        <button data-value="1020" type="button">1020px</button>
         <button data-value="1080" type="button">1080px</button>
-        <button data-value="1140" type="button">1140px</button>
         <button data-value="1200" type="button">1200px</button>
       </div>
     </div>
-
     <div class="setting-block" id="gapBlock">
-      <label>Separación entre páginas <span id="gapValue"></span></label>
-      <input type="range" id="gapRange" min="0" max="24" step="2">
+      <label>Separación entre páginas: <span id="gapValue"></span></label>
+      <input type="range" id="gapRange" min="0" max="24" step="2" value="0">
     </div>
-
-    <div class="setting-block" id="directionBlock" hidden>
+    <div class="setting-block" id="directionBlock">
       <label>Sentido de lectura</label>
       <div class="segmented" id="directionSegment">
         <button data-value="ltr" type="button">Izq. → Der.</button>
         <button data-value="rtl" type="button">Der. → Izq.</button>
       </div>
     </div>
-
     <div class="setting-block" id="autoScrollBlock">
-      <label class="switch-row">
+      <div class="switch-row">
         <span>Auto-scroll</span>
-        <span class="switch"><input type="checkbox" id="autoScrollToggle"><span class="switch-track"></span></span>
-      </label>
-      <input type="range" id="autoScrollSpeed" min="10" max="120" step="10">
+        <label class="switch">
+          <input type="checkbox" id="autoScrollToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <input type="range" id="autoScrollSpeed" min="10" max="120" step="5" value="40">
     </div>
-
+    <div class="setting-block">
+      <div class="switch-row">
+        <span>Mostrar páginas extra</span>
+        <label class="switch">
+          <input type="checkbox" id="extraPagesToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <p class="setting-hint">Créditos o publicidad que a veces trae el scan. Ocultas por defecto.</p>
+    </div>
   </div>
 
   <div class="settings-tab-panel" data-tab-panel="pantalla" hidden>
-
     <div class="setting-block">
       <label>Tema de lectura</label>
       <div class="segmented" id="themeSegment">
@@ -107,56 +109,44 @@
         <button data-value="white" type="button">Blanco</button>
       </div>
     </div>
-
     <div class="setting-block">
-      <label>Atenuar pantalla <span id="dimValue"></span></label>
-      <input type="range" id="dimRange" min="0" max="70" step="5">
+      <label>Atenuar pantalla: <span id="dimValue"></span></label>
+      <input type="range" id="dimRange" min="0" max="70" step="5" value="0">
     </div>
-
     <div class="setting-block">
-      <label class="switch-row">
+      <div class="switch-row">
         <span>Mostrar número de página</span>
-        <span class="switch"><input type="checkbox" id="pageCountToggle"><span class="switch-track"></span></span>
-      </label>
+        <label class="switch">
+          <input type="checkbox" id="pageCountToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
     </div>
-
-    <div class="setting-block">
-      <label class="switch-row">
-        <span>Mostrar páginas extra</span>
-        <span class="switch"><input type="checkbox" id="extraPagesToggle"><span class="switch-track"></span></span>
-      </label>
-      <p class="setting-hint">Créditos o publicidad que a veces trae el scan. Están ocultas por defecto.</p>
-    </div>
-
   </div>
 
   <div class="settings-tab-panel" data-tab-panel="ayuda" hidden>
     <div class="shortcuts-hint">
       <h4>Atajos de teclado</h4>
-      <p><kbd>←</kbd> <kbd>→</kbd> avanzar/retroceder · <kbd>Espacio</kbd> bajar o pasar página · <kbd>F</kbd> pantalla completa · <kbd>Esc</kbd> cerrar panel</p>
+      <p>
+        <kbd>←</kbd> <kbd>→</kbd> avanzar/retroceder<br>
+        <kbd>Espacio</kbd> bajar o pasar página<br>
+        <kbd>F</kbd> pantalla completa<br>
+        <kbd>Esc</kbd> cerrar panel
+      </p>
     </div>
   </div>
 
   <button class="btn ghost settings-reset" id="resetPrefs" type="button">Restablecer ajustes</button>
 </aside>
 
-<main id="readerMain">
-  <div class="loading-state">Cargando páginas…</div>
-</main>
+<button class="scroll-top-btn" id="scrollTopBtn" type="button" aria-label="Volver arriba" hidden>↑</button>
 
-<button class="scroll-top-btn" id="scrollTopBtn" type="button" title="Volver arriba" hidden>↑</button>
-
-<div class="reader-bottombar" id="bottombar">
-  <button id="prevBtn" type="button">← Anterior</button>
-  <button id="nextBtn" type="button">Siguiente →</button>
-</div>
-
-<script src="data.js?v=10"></script>
-<script src="reader.js?v=10"></script>
+<script src="data.js?v=11"></script>
+<script src="reader.js?v=11"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
-<script src="auth.js?v=10"></script>
+<script src="auth.js?v=11"></script>
 </body>
 </html>
