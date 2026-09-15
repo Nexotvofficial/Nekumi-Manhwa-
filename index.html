@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="site-guard.js?v=9"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nekumi — Manhwa</title>
+<meta name="description" content="Manhwa en tira vertical, actualizado cada semana.">
+<link rel="canonical" href="https://nekutoon.com/index.html">
+<link rel="stylesheet" href="style.css?v=9">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a href="/" class="brand">NEKU<span>MI</span></a>
+    <div class="search">
+      <input type="search" id="searchInput" placeholder="Buscar un título…" aria-label="Buscar manhwa" autocomplete="off">
+      <div class="search-suggestions" id="searchSuggestions" hidden></div>
+    </div>
+    <nav class="nav-links">
+      <a href="#novedades">Novedades</a>
+      <a href="#catalogo">Catálogo</a>
+      <a href="favorites.html">Favoritos</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" type="button">☰</button>
+  </div>
+  <div class="nav-mobile">
+    <a href="#novedades">Novedades</a>
+    <a href="#catalogo">Catálogo</a>
+    <a href="favorites.html">Favoritos</a>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <span class="hero-eyebrow">Actualizado siempre · gratis · sin cortes</span>
+      <h1>Historias que<br>no <em>terminan</em><br>al bajar.</h1>
+      <p>Nada de tarjetas cortadas ni saltos raros: cada capítulo es una tira continua, tal como se dibuja. Elegí un título, apretá play con el dedo, y no soltás hasta el final.</p>
+      <div class="hero-stats" id="heroStats"></div>
+      <div class="hero-ctas">
+        <a href="#catalogo" class="btn">Explorar catálogo</a>
+      </div>
+    </div>
+    <div class="strip" id="heroStrip" aria-hidden="true"></div>
+  </section>
+
+  <!-- AD SLOT: reemplazá el contenido de #adSlotTop por tu código de AdSense u otra red.
+       El label "Publicidad" queda fijo arriba para cumplir con la transparencia que piden
+       la mayoría de las redes (y buenas prácticas / normativa de publicidad). -->
+  <div class="wrap ad-slot" id="adSlotTop">
+    <span class="ad-label">Publicidad</span>
+    <div class="ad-slot-body"><!-- tu <script> / <ins> de AdSense va aquí --></div>
+  </div>
+
+  <section class="wrap section" id="continuar" hidden>
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Justo donde lo dejaste</span>
+        <h2>Seguir leyendo</h2>
+      </div>
+    </div>
+    <div class="shelf" id="continueShelf"></div>
+  </section>
+
+  <section class="wrap section" id="novedades">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Lo último que subió el repo</span>
+        <h2>Recién actualizado</h2>
+      </div>
+      <span class="count" id="freshCount"></span>
+    </div>
+    <div class="grid" id="freshGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
+  </section>
+
+  <section class="wrap section section-alt" id="catalogo">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Todo lo que hay, sin filtrar</span>
+        <h2>Catálogo completo</h2>
+      </div>
+      <span class="count" id="totalCount"></span>
+    </div>
+    <div class="chips" id="genreChips"></div>
+    <div class="chips" id="statusChips"></div>
+    <div class="chips">
+      <button class="chip" id="favChip" type="button">♡ Solo favoritos</button>
+    </div>
+    <div class="grid" id="fullGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
+    <p class="empty-state" id="emptyState" hidden>No encontramos nada con esos filtros.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span>Nekumi · catálogo generado automáticamente desde el repositorio.</span>
+    <nav class="footer-links">
+      <a href="dmca.html">DMCA</a>
+      <a href="privacy.html">Privacidad</a>
+      <a href="terms.html">Términos</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="data.js?v=9"></script>
+<script src="app.js?v=9"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-analytics-compat.js"></script>
+<script src="auth.js?v=9"></script>
+</body>
+</html>
