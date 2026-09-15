@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Leyendo — Nekumi</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="reader-mode">
+
+<div class="progress-rail"><span id="progressFill"></span></div>
+
+<div class="reader-topbar" id="topbar">
+  <a class="r-back" id="backLink" href="index.html">← Volver</a>
+  <span class="r-title" id="readerTitle">Cargando…</span>
+  <select id="chapterSelect" aria-label="Cambiar de capítulo"></select>
+</div>
+
+<main id="readerMain">
+  <div class="loading-state">Cargando páginas…</div>
+</main>
+
+<div class="reader-bottombar" id="bottombar">
+  <button id="prevBtn" type="button">← Anterior</button>
+  <button id="nextBtn" type="button">Siguiente →</button>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/reader.js"></script>
+</body>
+</html>
